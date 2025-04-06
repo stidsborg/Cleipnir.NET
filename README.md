@@ -112,13 +112,13 @@ To get started simply perform the following three steps in an ASP.NET or generic
 
 Firstly, install the Cleipnir.Flows nuget package (using either Postgres, SqlServer or MariaDB as persistence layer). I.e.
 ```powershell
-Install-Package Cleipnir.Flows.Postgres
+Install-Package Cleipnir.Flows.PostgresSql
 ```
 
 Secondly, add the following to the setup in `Program.cs` ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/d0c0584edf796db7202e61592b0cc2fd5f1ea909/Program.cs#L17)):
 ```csharp
 builder.Services.AddFlows(c => c
-  .UsePostgresSqlStore(connectionString)  
+  .UsePostgresStore(connectionString)  
   .RegisterFlowsAutomatically()
 );
 ```

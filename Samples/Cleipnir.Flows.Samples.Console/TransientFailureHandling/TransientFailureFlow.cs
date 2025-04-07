@@ -16,7 +16,13 @@ public class TransientFailureFlow : Flow<string>
                     "http://orderservice/api/orders/",
                     new StringContent(orderId)
                 );
-                return response.StatusCode == HttpStatusCode.ServiceUnavailable;
+                if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+                    return false;
+               
+                //otherwise we assume it is not a transient error and thrown an exception instead if not success
+                response.EnsureSuccessStatusCode();
+
+                return true;
             });
             if (!success)
                 await Delay(TimeSpan.FromSeconds(i ^ 2));

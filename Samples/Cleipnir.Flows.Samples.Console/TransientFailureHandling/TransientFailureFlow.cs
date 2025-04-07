@@ -20,6 +20,10 @@ public class TransientFailureFlow : Flow<string>
             });
             if (!success)
                 await Delay(TimeSpan.FromSeconds(i ^ 2));
+            else
+                return;
         }
+
+        throw new TimeoutException($"Unable to save order '{orderId}'");
     }
 }

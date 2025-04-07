@@ -25,6 +25,20 @@ public class Options
     internal ISerializer? Serializer { get; }
     internal List<MiddlewareInstanceOrType> Middlewares  { get; } = new();
 
+    /// <summary>
+    /// Configuration options for Cleipnir
+    /// </summary>
+    /// <param name="unhandledExceptionHandler">Callback handler for unhandled flow exceptions</param>
+    /// <param name="retentionPeriod">Period to keep completed flows before deletion</param>
+    /// <param name="retentionCleanUpFrequency">Retention clean-up check frequency</param>
+    /// <param name="leaseLength">Flow lease-length. Leases are automatically renewed</param>
+    /// <param name="enableWatchdogs">Enable background crashed, interrupted and postponed flow scheduling</param>
+    /// <param name="watchdogCheckFrequency">Check frequency for eligible crashed, interrupted and postponed flows</param>
+    /// <param name="messagesPullFrequency">Pull frequency for active/max-waiting messages</param>
+    /// <param name="messagesDefaultMaxWaitForCompletion">Default wait duration before suspension for messages</param>
+    /// <param name="delayStartup">Delay watchdog start-up</param>
+    /// <param name="maxParallelRetryInvocations">Limit the number of watchdog started invocations</param>
+    /// <param name="serializer">Specify custom serializer</param>
     public Options(
         Action<FrameworkException>? unhandledExceptionHandler = null, 
         TimeSpan? retentionPeriod = null,

@@ -79,7 +79,7 @@ public class OrderFlow(
 {
     public override async Task Run(Order order)
     {
-        var transactionId = Capture(() => Guid.NewGuid); //generated transaction id is fixed after this statement
+        var transactionId = Capture(() => Guid.NewGuid()); //generated transaction id is fixed after this statement
 
         await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
         var trackAndTrace = await Capture( 

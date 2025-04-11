@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Cleipnir.Flows.CrossCutting;
+using Cleipnir.ResilientFunctions.CoreRuntime;
 using Cleipnir.ResilientFunctions.CoreRuntime.Serialization;
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Domain.Exceptions;
@@ -24,6 +25,7 @@ public class Options
     internal TimeSpan? MessagesDefaultMaxWaitForCompletion { get; }
     internal ISerializer? Serializer { get; }
     internal List<MiddlewareInstanceOrType> Middlewares  { get; } = new();
+    internal UtcNow? UtcNow { get; }
 
     /// <summary>
     /// Configuration options for Cleipnir
@@ -39,6 +41,7 @@ public class Options
     /// <param name="delayStartup">Delay watchdog start-up</param>
     /// <param name="maxParallelRetryInvocations">Limit the number of watchdog started invocations</param>
     /// <param name="serializer">Specify custom serializer</param>
+    /// <param name="utcNow">Provide custom delegate for providing current utc datetime</param>
     public Options(
         Action<FrameworkException>? unhandledExceptionHandler = null, 
         TimeSpan? retentionPeriod = null,
@@ -50,7 +53,8 @@ public class Options
         TimeSpan? messagesDefaultMaxWaitForCompletion = null,
         TimeSpan? delayStartup = null, 
         int? maxParallelRetryInvocations = null, 
-        ISerializer? serializer = null
+        ISerializer? serializer = null,
+        UtcNow? utcNow = null
     )
     {
         UnhandledExceptionHandler = unhandledExceptionHandler;
@@ -64,6 +68,7 @@ public class Options
         DelayStartup = delayStartup;
         MaxParallelRetryInvocations = maxParallelRetryInvocations;
         Serializer = serializer;
+        UtcNow = utcNow;
     }
 
     public Options UseMiddleware<TMiddleware>() where TMiddleware : IMiddleware
@@ -116,6 +121,7 @@ public class Options
             MessagesDefaultMaxWaitForCompletion,
             DelayStartup,
             MaxParallelRetryInvocations,
-            Serializer
+            Serializer,
+            UtcNow
         );
 }

@@ -10,7 +10,7 @@
   <br>
 </p>
 
-# Cleipnir.NET
+# Cleipnir.NET / Cleipnir Flows
 Cleipnir is a powerful **durable execution** .NET framework - ensuring your code will always execute to completetion **correctly**.
 * Makes C#-code behave correctly after a crash, restart or suspension
 * Wait for external events directly inside your code

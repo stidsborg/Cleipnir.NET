@@ -11,7 +11,7 @@
 </p>
 
 # Cleipnir.NET / Cleipnir Flows
-Cleipnir is a powerful **durable execution** .NET framework - ensuring your code will always execute to completetion **correctly**.
+Cleipnir is a powerful **durable execution** .NET framework - ensuring your code will always execute to completion **correctly**.
 * Makes C#-code behave correctly after a crash, restart or suspension
 * Wait for external events directly inside your code
 * Suspend code execution for minutes, hours, weeks or longer
@@ -19,20 +19,20 @@ Cleipnir is a powerful **durable execution** .NET framework - ensuring your code
 * Great performance compared to external workflow orchestration
 * Use with ASP.NET / generic host service
 * Integrates easily with all message-brokers and service-buses
-* Removes need for **saga-pattern** and **outbox-pattern**
-* Powerful alterrnative to job-schedulers (HangFire, Quartz)
+* Removes the need for **saga-pattern** and **outbox-pattern**
+* Powerful alternative to job-schedulers (HangFire, Quartz)
 
 ## Abstractions
 Cleipnir.NET provides the following 3 abstractions:
 ### Capture
-Remembers the result of arbitary code:
+Remembers the result of arbitrary code:
 ```csharp
 var transactionId = await Capture("TransactionId", () => Guid.NewGuid());
 //or simply
 var transactionId = await Capture(Guid.NewGuid);
 ```
 ### Messages
-Wait for retrival of external message - without taking up resources: 
+Wait for retrieval of external message - without taking up resources: 
 ```csharp
 var fundsReserved = await Messages<FundsReserved>(timesOutIn: TimeSpan.FromMinutes(5));
 ```
@@ -97,7 +97,7 @@ public class OrderFlow(
 Durable execution is an emerging paradigm for simplifying the implementation of code which can safely resume execution after a process crash or restart (i.e. after a production deployment).
 It allows the developer to implement such code using ordinary C#-code with loops, conditionals and so on.
 
-Furthermore, durable execution allows suspending code execution for an arbitraty amount of time - thereby saving process resources.
+Furthermore, durable execution allows suspending code execution for an arbitrary amount of time - thereby saving process resources.
 
 Essentially, durable execution works by saving state at explicitly defined points during the invocation of code, thereby allowing the framework to skip over previously executed parts of the code when/if the code is re-executed. This occurs both after a crash and suspension.
 

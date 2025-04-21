@@ -31,17 +31,17 @@ public class Options
     /// Configuration options for Cleipnir
     /// </summary>
     /// <param name="unhandledExceptionHandler">Callback handler for unhandled flow exceptions</param>
-    /// <param name="retentionPeriod">Period to keep completed flows before deletion</param>
-    /// <param name="retentionCleanUpFrequency">Retention clean-up check frequency</param>
-    /// <param name="leaseLength">Flow lease-length. Leases are automatically renewed</param>
-    /// <param name="enableWatchdogs">Enable background crashed, interrupted and postponed flow scheduling</param>
-    /// <param name="watchdogCheckFrequency">Check frequency for eligible crashed, interrupted and postponed flows</param>
-    /// <param name="messagesPullFrequency">Pull frequency for active/max-waiting messages</param>
-    /// <param name="messagesDefaultMaxWaitForCompletion">Default wait duration before suspension for messages</param>
-    /// <param name="delayStartup">Delay watchdog start-up</param>
-    /// <param name="maxParallelRetryInvocations">Limit the number of watchdog started invocations</param>
-    /// <param name="serializer">Specify custom serializer</param>
-    /// <param name="utcNow">Provide custom delegate for providing current utc datetime</param>
+    /// <param name="retentionPeriod">Period to keep completed flows before deletion. Default infinite.</param>
+    /// <param name="retentionCleanUpFrequency">Retention clean-up check frequency. Default 1 hour when retention period is not infinite.</param>
+    /// <param name="leaseLength">Flow lease-length. Leases are automatically renewed. Default 60 seconds.</param>
+    /// <param name="enableWatchdogs">Enable background crashed, interrupted and postponed flow scheduling. Default true.</param>
+    /// <param name="watchdogCheckFrequency">Check frequency for eligible crashed, interrupted and postponed flows. Default 1 second.</param>
+    /// <param name="messagesPullFrequency">Pull frequency for active/max-waiting messages. Default: 250ms</param>
+    /// <param name="messagesDefaultMaxWaitForCompletion">Default wait duration before suspension for messages. Defaults to none.</param>
+    /// <param name="delayStartup">Delay watchdog start-up. Defaults to none.</param>
+    /// <param name="maxParallelRetryInvocations">Limit the number of watchdog started invocations. Default: 100.</param>
+    /// <param name="serializer">Specify custom serializer. Default built-in json-serializer.</param>
+    /// <param name="utcNow">Provide custom delegate for providing current utc datetime. Default: () => DateTime.UtcNow</param>
     public Options(
         Action<FrameworkException>? unhandledExceptionHandler = null, 
         TimeSpan? retentionPeriod = null,

@@ -14,7 +14,9 @@ public abstract class BaseFlow
     public Utilities Utilities => Workflow.Utilities;
     public Messages Messages => Workflow.Messages;
     public Effect Effect => Workflow.Effect;
-    
+
+    #region Capture explicit id with ResiliencyLevel
+
     public Task<T> Capture<T>(string id, Func<Task<T>> work, ResiliencyLevel resiliencyLevel = ResiliencyLevel.AtLeastOnce) 
         => Effect.Capture(id, work, resiliencyLevel);
     public Task<T> Capture<T>(string id, Func<T> work, ResiliencyLevel resiliencyLevel = ResiliencyLevel.AtLeastOnce) 
@@ -22,8 +24,38 @@ public abstract class BaseFlow
     public Task Capture(string id, Func<Task> work, ResiliencyLevel resiliencyLevel = ResiliencyLevel.AtLeastOnce) 
         => Effect.Capture(id, work, resiliencyLevel);
     public Task Capture(string id, Action work, ResiliencyLevel resiliencyLevel = ResiliencyLevel.AtLeastOnce) 
-        => Effect.Capture(id, work, resiliencyLevel);
+        => Effect.Capture(id, work, resiliencyLevel); 
+
+    #endregion
+
+    #region Capture explicit id with RetryPolicy
+
+    public Task<T> Capture<T>(string id, Func<Task<T>> work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(id, work, retryPolicy, flush);
+    public Task<T> Capture<T>(string id, Func<T> work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(id, work, retryPolicy, flush);
+    public Task Capture(string id, Func<Task> work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(id, work, retryPolicy, flush);
+    public Task Capture(string id, Action work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(id, work, retryPolicy, flush);
+
+    #endregion
+
+    #region Capture implicit id with RetryPolicy
+
+    public Task<T> Capture<T>(Func<Task<T>> work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(work, retryPolicy, flush);
+    public Task<T> Capture<T>(Func<T> work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(work, retryPolicy, flush);
+    public Task Capture(Func<Task> work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(work, retryPolicy, flush);
+    public Task Capture(Action work, RetryPolicy retryPolicy, bool flush = true) 
+        => Effect.Capture(work, retryPolicy, flush);
+
+    #endregion
     
+    #region Capture implicit id with ResiliencyLevel
+
     public Task<T> Capture<T>(Func<Task<T>> work, ResiliencyLevel resiliencyLevel = ResiliencyLevel.AtLeastOnce) 
         => Effect.Capture(work, resiliencyLevel);
     public Task<T> Capture<T>(Func<T> work, ResiliencyLevel resiliencyLevel = ResiliencyLevel.AtLeastOnce) 
@@ -32,6 +64,8 @@ public abstract class BaseFlow
         => Effect.Capture(work, resiliencyLevel);
     public Task Capture(Action work, ResiliencyLevel resiliencyLevel = ResiliencyLevel.AtLeastOnce) 
         => Effect.Capture(work, resiliencyLevel);
+
+    #endregion
     
     public Task<TMessage> Message<TMessage>() => Workflow.Messages.FirstOfType<TMessage>();
     public Task<Option<TMessage>> Message<TMessage>(string timeoutId, DateTime timesOutAt) => Workflow

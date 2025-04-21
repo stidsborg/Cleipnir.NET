@@ -30,6 +30,8 @@ Remembers the result of arbitrary code:
 var transactionId = await Capture("TransactionId", () => Guid.NewGuid());
 //or simply
 var transactionId = await Capture(Guid.NewGuid);
+//can also be used for external calls with automatic retry
+await Capture(() => httpClient.PostAsync("https://someurl.com", content), RetryPolicy.Default);
 ```
 ### Messages
 Wait for retrieval of external message - without taking up resources: 

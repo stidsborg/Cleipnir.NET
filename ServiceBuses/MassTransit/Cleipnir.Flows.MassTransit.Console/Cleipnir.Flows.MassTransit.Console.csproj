@@ -9,8 +9,8 @@
 
     <ItemGroup>
       <PackageReference Include="MassTransit" Version="8.4.1" />
-      <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
-      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
     </ItemGroup>
 
     <ItemGroup>

@@ -17,6 +17,7 @@ Cleipnir is a powerful **durable execution** .NET framework - ensuring your code
 * Suspend code execution for minutes, hours, weeks or longer
 * Requires only a database
 * Great performance compared to external workflow orchestration
+* Scales horizontally with number of replicas
 * Use with ASP.NET / generic host service
 * Integrates easily with all message-brokers and service-buses
 * Removes the need for **saga-pattern** and **outbox-pattern**

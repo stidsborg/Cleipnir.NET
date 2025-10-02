@@ -6,7 +6,7 @@
 <p align="center">
   <img src="https://github.com/stidsborg/Cleipnir.Flows/blob/main/Docs/cleipnir.png" alt="logo" />
   <br>
-  Simply making <strong>crash-resilient</strong> code <strong>simple</strong>
+  Surviving <strong>crashes/restarts</strong> in <strong>plain</strong> C#-code 
   <br>
 </p>
 

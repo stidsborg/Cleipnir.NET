@@ -12,10 +12,10 @@
 
 # Cleipnir.NET / Cleipnir Flows
 Cleipnir is a powerful **durable execution** .NET framework - ensuring your code will always execute to completion **correctly**.
-* Makes C#-code behave correctly after a crash, restart or suspension
+* Makes plain C#-code behave correctly after a crash, restart or suspension
 * Wait for external events directly inside your code
 * Suspend code execution for minutes, hours, weeks or longer
-* Requires only a database
+* Cloud-agnostic - requires only a database
 * Great performance compared to external workflow orchestration
 * Scales horizontally with number of replicas
 * Use with ASP.NET / generic host service

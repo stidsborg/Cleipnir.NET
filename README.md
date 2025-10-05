@@ -18,7 +18,7 @@ Cleipnir is a powerful **durable execution** .NET framework - ensuring your code
 * Cloud-agnostic - requires only a database
 * Great performance compared to cloud-based workflow orchestration
 * Scales horizontally with number of replicas
-* Use with ASP.NET / generic host service
+* Built for ASP.NET / generic host service
 * Integrates easily with all message-brokers and service-buses
 * Removes the need for **saga-pattern** and **outbox-pattern**
 * Powerful alternative to job-schedulers (HangFire, Quartz)

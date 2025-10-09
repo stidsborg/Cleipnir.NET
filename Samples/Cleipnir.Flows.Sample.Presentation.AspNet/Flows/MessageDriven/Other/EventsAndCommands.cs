@@ -20,3 +20,4 @@ public record ProductsShipmentFailed(string OrderId) : EventsAndCommands;
 public record OrderConfirmationEmailFailed(string OrderId) : EventsAndCommands;
 public record CancelProductsShipment(string OrderId) : EventsAndCommands;
 public record ReverseTransaction(string OrderId, Guid TransactionId) : EventsAndCommands;
+public record NotifyCustomerService(string OrderId) : EventsAndCommands;

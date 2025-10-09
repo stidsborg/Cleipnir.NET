@@ -15,15 +15,23 @@ public class OrderFlow(
 {
     public override async Task Run(Order order)
     {
-        var transactionId = await Effect.Capture(Guid.NewGuid);
+        var transactionId = await Capture(Guid.NewGuid);
 
-        await paymentProviderClient.Reserve(transactionId, order.CustomerId, order.TotalPrice);
-        var trackAndTrace = await Effect.Capture(
-            () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds),
-            ResiliencyLevel.AtMostOnce
+        try
+        {
+            await Capture(() => paymentProviderClient.Reserve(transactionId, order.CustomerId, order.TotalPrice));
+        }
+        catch (FatalWorkflowException)
+        {
+            await CleanUp(FailedAt.FundsCaptured, transactionId, trackAndTrace: null);
+            return;
+        }
+
+        var trackAndTrace = await Capture(
+            () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds)
         );
-        await paymentProviderClient.Capture(transactionId);
-        await emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds);
+        await Capture(() => paymentProviderClient.Capture(transactionId));
+        await Capture(() => emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds));
     }
     
     #region Polly
@@ -51,11 +59,11 @@ public class OrderFlow(
             case FailedAt.FundsReserved:
                 break;
             case FailedAt.ProductsShipped:
-                await paymentProviderClient.CancelReservation(transactionId);
+                await Capture(() => paymentProviderClient.CancelReservation(transactionId));
                 break;
             case FailedAt.FundsCaptured:
-                await paymentProviderClient.Reverse(transactionId);
-                await logisticsClient.CancelShipment(trackAndTrace!);
+                await Capture(() => paymentProviderClient.Reverse(transactionId));
+                await Capture(() => logisticsClient.CancelShipment(trackAndTrace!));
                 break;
             case FailedAt.OrderConfirmationEmailSent:
                 //we accept this failure without cleaning up

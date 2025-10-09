@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Cleipnir.Flows.SourceGenerator.Utils;
@@ -14,10 +13,10 @@ namespace Cleipnir.Flows.SourceGenerator
         private const string ResultFlowType = "Cleipnir.Flows.Flow`2";
         private const string IgnoreAttribute = "Cleipnir.Flows.SourceGeneration.Ignore";
         
-        private INamedTypeSymbol? _paramlessFlowTypeSymbol;
-        private INamedTypeSymbol? _unitFlowTypeSymbol;
-        private INamedTypeSymbol? _resultFlowTypeSymbol;
-        private INamedTypeSymbol? _ignoreAttribute;
+        private volatile INamedTypeSymbol? _paramlessFlowTypeSymbol;
+        private volatile INamedTypeSymbol? _unitFlowTypeSymbol;
+        private volatile INamedTypeSymbol? _resultFlowTypeSymbol;
+        private volatile INamedTypeSymbol? _ignoreAttribute;
         
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -38,13 +37,13 @@ namespace Cleipnir.Flows.SourceGenerator
         public GeneratedFlowInformation? Transform(GeneratorAttributeSyntaxContext context)
         {
             
-            //if (_paramlessFlowTypeSymbol == null)
+            if (_paramlessFlowTypeSymbol == null)
             {
                 var complication = context.SemanticModel.Compilation;
-                _paramlessFlowTypeSymbol = complication.GetTypeByMetadataName(ParamlessFlowType);
                 _unitFlowTypeSymbol = complication.GetTypeByMetadataName(UnitFlowType);
                 _resultFlowTypeSymbol = complication.GetTypeByMetadataName(ResultFlowType);
                 _ignoreAttribute = complication.GetTypeByMetadataName(IgnoreAttribute);
+                _paramlessFlowTypeSymbol = complication.GetTypeByMetadataName(ParamlessFlowType);
             }
 
             if (_paramlessFlowTypeSymbol == null || _unitFlowTypeSymbol == null || _resultFlowTypeSymbol == null)

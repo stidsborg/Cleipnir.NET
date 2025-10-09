@@ -11,17 +11,17 @@
 </p>
 
 # Cleipnir.NET / Cleipnir Flows
-Cleipnir is a powerful **durable execution** .NET framework - ensuring your code will always execute to completion **correctly**.
-* Makes plain C#-code behave correctly after a crash, restart or suspension
-* Wait for external events directly inside your code
-* Suspend code execution for minutes, hours, weeks or longer
-* Cloud-agnostic - requires only a database
-* Great performance compared to cloud-based workflow orchestration
-* Scales horizontally with number of replicas
-* Built for ASP.NET / generic host service
-* Integrates easily with all message-brokers and service-buses
-* Removes the need for **saga-pattern** and **outbox-pattern**
-* Powerful alternative to job-schedulers (HangFire, Quartz)
+**Cleipnir.NET** is a powerful **durable execution** framework for .NET — ensuring your code always completes correctly, even after **crashes** or **restarts**.
+* 💡**Crash-safe execution** - plain C# code automatically resumes after failures or redeployments. 
+* ⏸️ **Wait for external events** - directly inside your code (without taking up resources)
+* ⏰ **Suspend execution** - for seconds, minutes, or weeks — and continue seamlessly.
+* ☁️ **Cloud-agnostic** - runs anywhere, only needs a database.
+* ⚡ **High performance** - significantly faster than cloud-based workflow orchestrators.
+* 📈 **Scales horizontally** - with replicas for high availability. 
+* 🔌 **Built for ASP.NET and .NET Generic Host** - easy to integrate.
+* 📨 **Compatible with all message brokers and service buses.**  
+* 🧩 **Eliminates complex patterns** - like the **Saga** and **Outbox**.  
+* 🗓️ **A powerful job-scheduler alternative** - to traditional job schedulers (Hangfire, Quartz, etc.).  
 
 ## Abstractions
 Cleipnir.NET provides the following 3 abstractions:

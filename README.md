@@ -24,23 +24,27 @@
 * 🗓️ **A powerful job-scheduler alternative** - to traditional job schedulers (Hangfire, Quartz, etc.).  
 
 ## Abstractions
-Cleipnir.NET provides the following 3 abstractions:
+The following **three** primitives form the foundation of Cleipnir.NET — together they allow you to express reliable business workflows as **plain** C# code that **cannot fail**.
+
 ### Capture
-Remembers the result of arbitrary code:
+Ensures that non-deterministic or side-effectful code (e.g., GUID generation, HTTP calls) produces the **same result** after a crash or restart.  
+
 ```csharp
 var transactionId = await Capture("TransactionId", () => Guid.NewGuid());
+
 //or simply
 var transactionId = await Capture(Guid.NewGuid);
+
 //can also be used for external calls with automatic retry
 await Capture(() => httpClient.PostAsync("https://someurl.com", content), RetryPolicy.Default);
 ```
 ### Messages
-Wait for retrieval of external message - without taking up resources: 
+Wait for retrieval of external message - without consuming resources: 
 ```csharp
 var fundsReserved = await Messages<FundsReserved>(timesOutIn: TimeSpan.FromMinutes(5));
 ```
 ### Suspension 
-Suspends the current execution at-will, resuming after some duration: 
+Suspends execution for a given duration — after which it will resume automatically from the same point.
 ```csharp
 await Delay(TimeSpan.FromMinutes(5));
 ```

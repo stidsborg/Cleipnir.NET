@@ -20,7 +20,7 @@
 * 📈 **Scales horizontally** - with replicas for high availability. 
 * 🔌 **Built for ASP.NET and .NET Generic Host** - easy to integrate.
 * 📨 **Compatible with all message brokers and service buses.**  
-* 🧩 **Eliminates complex patterns** - like the **Saga** and **Outbox**.  
+* 🧩 **Eliminates complex patterns** - like the **Saga** and **Outbox/Inbox**.  
 * 🗓️ **A powerful job-scheduler alternative** - to traditional job schedulers (Hangfire, Quartz, etc.).  
 
 ## Abstractions

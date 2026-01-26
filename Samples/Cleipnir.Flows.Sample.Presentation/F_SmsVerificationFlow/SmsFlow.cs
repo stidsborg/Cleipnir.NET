@@ -1,14 +1,20 @@
-using Cleipnir.ResilientFunctions.Domain;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
-
 namespace Cleipnir.Flows.Sample.Presentation.F_SmsVerificationFlow;
 
-[GenerateFlows]
-public class SmsFlow : Flow<string>
+public enum MostRecentAttempt
 {
-    public required SmsState State { get; init; }
-    
-    public override async Task Run(string customerPhoneNumber)
+    NotStarted,
+    CodeExpired,
+    IncorrectCode,
+    Success,
+    MaxAttemptsExceeded
+}
+
+public record CodeFromUser(string CustomerPhoneNumber, string Code, DateTime Timestamp);
+
+[GenerateFlows]
+public class SmsFlow : Flow<string, MostRecentAttempt>
+{
+    public override async Task<MostRecentAttempt> Run(string customerPhoneNumber)
     {
         for (var i = 0; i < 5; i++)
         {
@@ -21,42 +27,18 @@ public class SmsFlow : Flow<string>
                     return generatedCode;
                 }
             );
-            
-            var codeFromUser = await Messages
-                .OfType<CodeFromUser>()
-                .Skip(i)
-                .First();
+
+            var codeFromUser = await Message<CodeFromUser>();
 
             if (IsExpired(codeFromUser))
-                State.Status = MostRecentAttempt.CodeExpired;
+                continue; // CodeExpired - try again
             else if (codeFromUser.Code == generatedCode)
-            {
-                State.Status = MostRecentAttempt.Success;
-                return;
-            }
-
-            State.Status = MostRecentAttempt.IncorrectCode;
+                return MostRecentAttempt.Success;
         }
 
-        State.Status = MostRecentAttempt.MaxAttemptsExceeded;
+        return MostRecentAttempt.MaxAttemptsExceeded;
     }
 
-    public class SmsState : FlowState
-    {
-        public MostRecentAttempt Status { get; set; }
-    }
-    
-    public record CodeFromUser(string CustomerPhoneNumber, string Code, DateTime Timestamp);
-
-    public enum MostRecentAttempt
-    {
-        NotStarted,
-        CodeExpired,
-        IncorrectCode,
-        Success,
-        MaxAttemptsExceeded
-    }
-    
     private string GenerateOneTimeCode()
     {
         throw new NotImplementedException();

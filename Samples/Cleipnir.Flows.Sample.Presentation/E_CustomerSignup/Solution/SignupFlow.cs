@@ -1,5 +1,3 @@
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
-
 namespace Cleipnir.Flows.Sample.Presentation.E_CustomerSignup.Solution;
 
 [GenerateFlows]
@@ -11,12 +9,9 @@ public class SignupFlow : Flow<string>
         
         for (var i = 0; i <= 3; i++)
         {
-            var emailVerifiedOption = await Messages
-                .TakeUntilTimeout(TimeSpan.FromDays(1))
-                .OfType<EmailVerified>()
-                .FirstOrNone();
+            var emailVerified = await Message<EmailVerified>(maxWait: TimeSpan.FromDays(1));
 
-            if (emailVerifiedOption.HasValue)
+            if (emailVerified != null)
                 break;
 
             if (i == 3)

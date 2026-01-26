@@ -1,41 +1,40 @@
-﻿using Cleipnir.ResilientFunctions.Reactive.Extensions;
-
 namespace Cleipnir.Flows.Sample.ConsoleApp.Engagement;
 
 [GenerateFlows]
-public class EngagementFlow : Flow<string> 
+public class EngagementFlow : Flow<string>
 {
     public override async Task Run(string candidateEmail)
     {
         await Effect.Capture(
-            id: "InitialCorrespondence",
+            "InitialCorrespondence",
             SendEngagementInitialCorrespondence
         );
-        
+
         for (var i = 0; i < 10; i++)
         {
-            var either = await Messages
-                .TakeUntilTimeout($"Timeout_{i}", expiresIn: TimeSpan.FromHours(1))
-                .OfTypes<EngagementAccepted, EngagementRejected>()
-                .Where(either =>
-                    either.Match(
-                        first: a => a.Iteration == i,
-                        second: r => r.Iteration == i
-                    )
-                )
-                .FirstOrDefault();
+            var response = await Message<object>(waitFor: TimeSpan.FromHours(1));
 
-            if (either?.AsObject() is EngagementAccepted)
+            if (response is EngagementAccepted)
             {
                 await Effect.Capture(
-                    id: "NotifyHR", 
-                    work: () => NotifyHR(candidateEmail)
+                    "NotifyHR",
+                    () => NotifyHR(candidateEmail)
                 );
                 return;
             }
-            
+
+            if (response is EngagementRejected)
+            {
+                await Effect.Capture(
+                    $"Reminder#{i}",
+                    SendEngagementReminder
+                );
+                continue;
+            }
+
+            // Timeout occurred
             await Effect.Capture(
-                id: $"Reminder#{i}",
+                $"Reminder#{i}",
                 SendEngagementReminder
             );
         }
@@ -48,5 +47,6 @@ public class EngagementFlow : Flow<string>
     private static Task SendEngagementReminder() => Task.CompletedTask;
 }
 
-public record EngagementAccepted(int Iteration);
-public record EngagementRejected(int Iteration);
+public abstract record EngagementResponse(int Iteration);
+public record EngagementAccepted(int Iteration) : EngagementResponse(Iteration);
+public record EngagementRejected(int Iteration) : EngagementResponse(Iteration);

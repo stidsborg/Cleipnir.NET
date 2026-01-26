@@ -1,6 +1,5 @@
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Messaging;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Cleipnir.ResilientFunctions.Storage;
 
 namespace Cleipnir.Flows.Tests.AspNet;
@@ -52,7 +51,7 @@ public class BulkPublishTests
     {
         public override async Task Run()
         {
-            await Messages.FirstOfType<string>();
+            await Message<string>();
         }
     }
 }

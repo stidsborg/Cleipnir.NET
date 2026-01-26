@@ -1,6 +1,4 @@
-﻿using Cleipnir.ResilientFunctions.Reactive.Extensions;
-
-namespace Cleipnir.Flows.Sample.Presentation.D_LoanApplication;
+﻿namespace Cleipnir.Flows.Sample.Presentation.D_LoanApplication;
 
 [GenerateFlows]
 public class LoanApplicationFlow : Flow<LoanApplication>
@@ -10,11 +8,10 @@ public class LoanApplicationFlow : Flow<LoanApplication>
         await Bus.Publish(new PerformCreditCheck(loanApplication.Id, loanApplication.CustomerId, loanApplication.Amount));
         
         //replies are of type CreditCheckOutcome
-        
-        var outcomes = await Messages
-            .OfType<CreditCheckOutcome>()
-            .Take(3)
-            .Completion();
+
+        var outcomes = new List<CreditCheckOutcome>();
+        for (var i = 0; i < 3; i++)
+            outcomes.Add(await Message<CreditCheckOutcome>());
 
         CommandAndEvents decision = DateTime.Now.Ticks % 2 == 0
             ? new LoanApplicationApproved(loanApplication)

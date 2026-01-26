@@ -24,16 +24,9 @@ public static class Program
 [GenerateFlows]
 public class SimpleFlow : Flow
 {
-    public required FlowState State { get; init; }
-
     public override Task Run()
     {
         Console.WriteLine("Executing FunFlow");
         return Task.CompletedTask;
-    }
-
-    public class FlowState : ResilientFunctions.Domain.FlowState
-    {
-        public string Value { get; set; } = "";
     }
 }

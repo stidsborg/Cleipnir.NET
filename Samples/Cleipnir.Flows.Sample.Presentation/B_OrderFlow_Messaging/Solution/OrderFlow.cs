@@ -1,5 +1,4 @@
 ﻿using Cleipnir.ResilientFunctions.Helpers;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Serilog;
 using ILogger = Serilog.ILogger;
 
@@ -17,16 +16,16 @@ public class OrderFlow(MessageBroker messageBroker) : Flow<Order>
         var transactionId = await Effect.CreateOrGet("TransactionId", Guid.NewGuid());
         
         await messageBroker.Send(new ReserveFunds(order.OrderId, order.TotalPrice, transactionId, order.CustomerId));
-        await Messages.FirstOfType<FundsReserved>();
+        await Message<FundsReserved>();
 
         await messageBroker.Send(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds));
-        var trackAndTrace = await Messages.FirstOfType<ProductsShipped>().SelectAsync(msg => msg.TrackAndTrace);
+        var trackAndTrace = (await Message<ProductsShipped>()).TrackAndTrace;
         
         await messageBroker.Send(new CaptureFunds(order.OrderId, order.CustomerId, transactionId));
-        await Messages.FirstOfType<FundsCaptured>();
+        await Message<FundsCaptured>();
 
         await messageBroker.Send(new SendOrderConfirmationEmail(order.OrderId, order.CustomerId, trackAndTrace));
-        await Messages.FirstOfType<OrderConfirmationEmailSent>();
+        await Message<OrderConfirmationEmailSent>();
 
         Logger.Information($"Processing of order '{order.OrderId}' completed");
     }

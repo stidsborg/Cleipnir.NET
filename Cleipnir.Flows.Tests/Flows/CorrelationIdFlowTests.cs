@@ -1,5 +1,4 @@
 using Cleipnir.ResilientFunctions.Helpers;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -47,7 +46,7 @@ public class CorrelationIdFlowTests
             await Workflow.RegisterCorrelation("SomeCorrelationId");
             CorrelationRegistered = true;
             
-            ReceivedMessage = await Messages.FirstOfType<Message>();
+            ReceivedMessage = await Message<Message>();
         }
     }
     

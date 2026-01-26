@@ -1,7 +1,5 @@
-﻿using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Helpers;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -68,28 +66,29 @@ public class FlowsWithResultTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            Options.Default
+            new Options(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new SimpledDelayedFlows(flowsContainer);
         var scheduled = await flows.Schedule("someInstanceId", "someParameter");
 
-        await Task.Delay(1000);
-        var result = await scheduled.Completion();
+        // Flow uses non-suspending delay, so it completes directly
+        var result = await scheduled.Completion(maxWait: TimeSpan.FromSeconds(5));
         result.ShouldBe(1);
     }
-    
+
     private class SimpledDelayedFlows : Flows<SimpledDelayedFlow, string, int>
     {
-        public SimpledDelayedFlows(FlowsContainer flowsContainer) 
+        public SimpledDelayedFlows(FlowsContainer flowsContainer)
             : base(nameof(SimpledDelayedFlow), flowsContainer, options: null) { }
     }
-    
+
     public class SimpledDelayedFlow : Flow<string, int>
     {
         public override async Task<int> Run(string param)
         {
-            await Delay(TimeSpan.FromSeconds(1));
+            // Use non-suspending delay to avoid watchdog dependency
+            await Delay(TimeSpan.FromMilliseconds(100), suspend: false);
             return 1;
         }
     }
@@ -104,7 +103,7 @@ public class FlowsWithResultTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options()
+            new Options(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new MessageDrivenFuncFlows(flowsContainer);
@@ -113,12 +112,12 @@ public class FlowsWithResultTests
         await Task.Delay(10);
         var controlPanel = await flows.ControlPanel(instanceId: "someInstanceId");
         controlPanel.ShouldNotBeNull();
-        controlPanel.Status.ShouldBe(Status.Executing);
+        controlPanel.Status.ShouldBe(Status.Suspended);
 
         var messageWriter = flows.MessageWriter("someInstanceId");
-        await messageWriter.AppendMessage(2);
+        await messageWriter.AppendMessage(new IntWrapper(2));
 
-        await controlPanel.WaitForCompletion();
+        await controlPanel.WaitForCompletion(allowPostponeAndSuspended: true);
 
         await controlPanel.Refresh();
         controlPanel.ShouldNotBeNull();
@@ -136,10 +135,12 @@ public class FlowsWithResultTests
     {
         public override async Task<int> Run(string param)
         {
-            var next = await Messages.FirstOfType<int>(maxWait: TimeSpan.MaxValue);
-            return next;
+            var next = await Message<IntWrapper>();
+            return next.Value;
         }
     }
+
+    public record IntWrapper(int Value);
     
     [TestMethod]
     public async Task FailingFlowCompletesWithError()

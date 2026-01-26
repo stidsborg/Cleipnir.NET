@@ -1,7 +1,5 @@
 ﻿using Cleipnir.Flows.MassTransit.RabbitMq.Console.Other;
-using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Domain.Exceptions.Commands;
-using Cleipnir.ResilientFunctions.Helpers;
 using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.RabbitMq.Console;
@@ -12,35 +10,42 @@ public class OrderFlow(IBus bus) : Flow<Order>
     public override async Task Run(Order order)
     {
         var transactionId = await Capture(Guid.NewGuid);
+        var fundsReserved = false;
+        var productsShipped = false;
+        var fundsCaptured = false;
+
         try
         {
             await ReserveFunds(order, transactionId);
             await Message<FundsReserved>();
+            fundsReserved = true;
 
             await ShipProducts(order);
-            var trackAndTraceNumber = await Message<ProductsShipped>()
-                .SelectAsync(s => s.TrackAndTraceNumber);
+            var productsShippedMsg = await Message<ProductsShipped>();
+            productsShipped = true;
+            var trackAndTraceNumber = productsShippedMsg.TrackAndTraceNumber;
 
             await CaptureFunds(order, transactionId);
             await Message<FundsCaptured>();
+            fundsCaptured = true;
 
             await SendOrderConfirmationEmail(order, trackAndTraceNumber);
             await Message<OrderConfirmationEmailSent>();
         }
         catch (Exception e) when (e is not SuspendInvocationException)
         {
-            await Compensate(order, transactionId);
+            await Compensate(order, transactionId, fundsReserved, productsShipped, fundsCaptured);
         }
     }
 
-    private async Task Compensate(Order order, Guid transactionId)
+    private async Task Compensate(Order order, Guid transactionId, bool fundsReserved, bool productsShipped, bool fundsCaptured)
     {
-        if (await Effect.GetStatus("ShipProducts") != WorkStatus.NotStarted)
+        if (productsShipped)
             await CancelShipment(order);
 
-        if (await Effect.GetStatus("CaptureFunds") != WorkStatus.NotStarted)
+        if (fundsCaptured)
             await ReverseTransaction(order, transactionId);
-        else if (await Effect.GetStatus("ReserveFunds") != WorkStatus.NotStarted)
+        else if (fundsReserved)
             await CancelReservation(order, transactionId);
     }
 

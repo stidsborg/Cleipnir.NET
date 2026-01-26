@@ -28,11 +28,13 @@ public class OrderController(Flows.Rpc.OrderFlows orderFlows) : ControllerBase
         if (controlPanel is null)
             return NotFound();
 
+        // Effect id 1 corresponds to ShipProducts in the flow
+        const int shipProductsEffectId = 1;
         if (trackAndTraceNumber == null)
-            await controlPanel.Effects.Remove("ShipProducts");
+            await controlPanel.Effects.Remove(shipProductsEffectId);
         else
-            await controlPanel.Effects.SetSucceeded("ShipProducts", new TrackAndTrace(trackAndTraceNumber));
-        
+            await controlPanel.Effects.SetSucceeded(shipProductsEffectId, new TrackAndTrace(trackAndTraceNumber));
+
         await controlPanel.Restart();
         return Ok();
     }

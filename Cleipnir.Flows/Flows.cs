@@ -19,7 +19,6 @@ public interface IBaseFlows
     public static abstract Type FlowType { get; }
 
     public Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : notnull;
-    public Task<IReadOnlyList<StoredInstance>> GetInstances(Status? status = null);
 }
 
 public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
@@ -33,20 +32,10 @@ public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
     {
         FlowsContainer = flowsContainer;
         _flowFactory = flowFactory;
-    } 
-    
-    public abstract Task<IReadOnlyList<StoredInstance>> GetInstances(Status? status = null);
-    public abstract Task Interrupt(IEnumerable<StoredInstance> instances);
-    
-    /// <summary>
-    /// Emit interrupt signal to flows
-    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension. 
-    /// </summary>
-    /// <param name="instances">Instance ids for flows</param>
-    /// <returns>A task which will complete when the interrupt-signal has been persisted</returns>
-    public Task Interrupt(IEnumerable<FlowInstance> instances)
-        => Interrupt(instances.Select(id => id.ToStoredInstance()));
-    
+    }
+
+    public abstract Task Interrupt(IEnumerable<FlowInstance> instances);
+
     private static Action<TFlow, Workflow> CreateWorkflowSetter()
     {
         ParameterExpression flowParam = Expression.Parameter(typeof(TFlow), "flow");
@@ -122,10 +111,7 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
         var controlPanel = await _registration.ControlPanel(instanceId);
         return controlPanel;
     }
-    
-    protected Task<TState?> GetState<TState>(FlowInstance instanceId) where TState : FlowState, new() 
-        => _registration.GetState<TState>(instanceId);
-    
+
     public MessageWriter MessageWriter(FlowInstance instanceId) 
         => _registration.MessageWriters.For(instanceId);
 
@@ -184,15 +170,13 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <returns>A task which will complete when the flows have been persisted</returns>
     public Task<BulkScheduled> BulkSchedule(IEnumerable<FlowInstance> instanceIds) => _registration.BulkSchedule(instanceIds);
 
-    public override Task<IReadOnlyList<StoredInstance>> GetInstances(Status? status = null) => _registration.GetInstances(status);
-    
     /// <summary>
     /// Emit interrupt signal to flows
-    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension. 
+    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension.
     /// </summary>
     /// <param name="instances">Instance ids for flows</param>
     /// <returns>A task which will complete when the interrupt-signal has been persisted</returns>
-    public override Task Interrupt(IEnumerable<StoredInstance> instances) => _registration.Interrupt(instances);
+    public override Task Interrupt(IEnumerable<FlowInstance> instances) => _registration.Interrupt(instances);
 
     /// <summary>
     /// Send the provided message to a flow
@@ -203,17 +187,16 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
     /// <typeparam name="T">Type of the message</typeparam>
     /// <returns>A task which will complete when the message has been persisted</returns>
-    public Task<Finding> SendMessage<T>(FlowInstance flowInstance, T message, bool create = true, string? idempotencyKey = null) where T : notnull 
+    public Task SendMessage<T>(FlowInstance flowInstance, T message, bool create = true, string? idempotencyKey = null) where T : notnull
         => _registration.SendMessage(flowInstance, message, create, idempotencyKey);
-    
+
     /// <summary>
     /// Send multiple messages to different flows
     /// </summary>
     /// <param name="messages">Messages to be sent</param>
-    /// <param name="interrupt">Emit interrupt signal to receiving flows</param>
     /// <returns>A task which will complete when the messages have been persisted</returns>
-    public Task SendMessages(IReadOnlyList<BatchedMessage> messages, bool interrupt = true) 
-        => _registration.SendMessages(messages, interrupt);
+    public Task SendMessages(IReadOnlyList<BatchedMessage> messages)
+        => _registration.SendMessages(messages);
 }
 
 public class Flows<TFlow, TParam> : BaseFlows<TFlow>
@@ -249,11 +232,8 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
         var controlPanel = await _registration.ControlPanel(instanceId);
         return controlPanel;
     }
-    
-    protected Task<TState?> GetState<TState>(FlowInstance instanceId) where TState : FlowState, new() 
-        => _registration.GetState<TState>(instanceId);
-    
-    public MessageWriter MessageWriter(FlowInstance instanceId) 
+
+    public MessageWriter MessageWriter(FlowInstance instanceId)
         => _registration.MessageWriters.For(instanceId);
 
     /// <summary>
@@ -316,15 +296,13 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     public override Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null)
         => _registration.RouteMessage(message, correlationId, idempotencyKey);
 
-    public override Task<IReadOnlyList<StoredInstance>> GetInstances(Status? status = null) => _registration.GetInstances(status);
-    
     /// <summary>
     /// Emit interrupt signal to flows
-    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension. 
+    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension.
     /// </summary>
     /// <param name="instances">Instance ids for flows</param>
     /// <returns>A task which will complete when the interrupt-signal has been persisted</returns>
-    public override Task Interrupt(IEnumerable<StoredInstance> instances) => _registration.Interrupt(instances);
+    public override Task Interrupt(IEnumerable<FlowInstance> instances) => _registration.Interrupt(instances);
 
     /// <summary>
     /// Send the provided message to a flow
@@ -334,21 +312,20 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
     /// <typeparam name="T">Type of the message</typeparam>
     /// <returns>A task which will complete when the message has been persisted</returns>
-    public Task<Finding> SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : notnull 
+    public Task SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : notnull
         => _registration.SendMessage(flowInstance, message, idempotencyKey);
- 
+
     /// <summary>
     /// Send multiple messages to different flows
     /// </summary>
     /// <param name="messages">Messages to be sent</param>
-    /// <param name="interrupt">Emit interrupt signal to receiving flows</param>
     /// <returns>A task which will complete when the messages have been persisted</returns>
-    public Task SendMessages(IReadOnlyList<BatchedMessage> messages, bool interrupt = true) 
-        => _registration.SendMessages(messages, interrupt);
-    
+    public Task SendMessages(IReadOnlyList<BatchedMessage> messages)
+        => _registration.SendMessages(messages);
+
     /// <summary>
     /// Schedule multiple flows at once
-    /// Execution of flows will be divided between the replicas 
+    /// Execution of flows will be divided between the replicas
     /// </summary>
     /// <param name="bulkWork">Instance ids and parameters for the flows</param>
     /// <returns>A task which will complete when the flows have been persisted</returns>
@@ -383,7 +360,7 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     public Task<ControlPanel<TParam, TResult>?> ControlPanel(string instanceId) 
         => _registration.ControlPanel(instanceId);
 
-    public MessageWriter MessageWriter(FlowInstance instanceId) 
+    public MessageWriter MessageWriter(FlowInstance instanceId)
         => _registration.MessageWriters.For(instanceId);
 
     /// <summary>
@@ -393,9 +370,9 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     /// <param name="param">Flow's parameter</param>
     /// <param name="initialState">Optional initial state with pre-filled messages and effects</param>
     /// <returns>A task which will complete when the flow has completed its execution containing its result</returns>
-    public Task<TResult> Run(FlowInstance instanceId, TParam param, InitialState? initialState = null) 
+    public Task<TResult> Run(FlowInstance instanceId, TParam param, InitialState? initialState = null)
         => _registration.Invoke(instanceId, param, initialState);
-    
+
     /// <summary>
     /// Schedule the flow for immediate execution.
     /// Flow will be executed inside the same process.
@@ -409,7 +386,7 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
 
     /// <summary>
     /// Schedule the flow for future execution.
-    /// Flow can be executed at any replica 
+    /// Flow can be executed at any replica
     /// </summary>
     /// <param name="instanceId">Instance id for the flow</param>
     /// <param name="param">Flow's parameter</param>
@@ -423,7 +400,7 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
 
     /// <summary>
     /// Schedule the flow for future execution.
-    /// Flow can be executed at any replica 
+    /// Flow can be executed at any replica
     /// </summary>
     /// <param name="instanceId">Instance id for the flow</param>
     /// <param name="param">Flow's parameter</param>
@@ -434,9 +411,6 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
         TParam param,
         TimeSpan delay
     ) => _registration.ScheduleIn(instanceId.Value, param, delay);
-
-    protected Task<TState?> GetState<TState>(FlowInstance instanceId) where TState : FlowState, new() 
-        => _registration.GetState<TState>(instanceId);
 
     /// <summary>
     /// Route a message to the flow with registered correlation id
@@ -449,15 +423,13 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     public override Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null)
         => _registration.RouteMessage(message, correlationId, idempotencyKey);
 
-    public override Task<IReadOnlyList<StoredInstance>> GetInstances(Status? status = null) => _registration.GetInstances(status);
-    
     /// <summary>
     /// Emit interrupt signal to flows
-    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension. 
+    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension.
     /// </summary>
     /// <param name="instances">Instance ids for flows</param>
     /// <returns>A task which will complete when the interrupt-signal has been persisted</returns>
-    public override Task Interrupt(IEnumerable<StoredInstance> instances) => _registration.Interrupt(instances);
+    public override Task Interrupt(IEnumerable<FlowInstance> instances) => _registration.Interrupt(instances);
 
     /// <summary>
     /// Send the provided message to a flow
@@ -467,21 +439,20 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
     /// <typeparam name="T">Type of the message</typeparam>
     /// <returns>A task which will complete when the message has been persisted</returns>
-    public Task<Finding> SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : notnull 
+    public Task SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : notnull
         => _registration.SendMessage(flowInstance, message, idempotencyKey);
-    
+
     /// <summary>
     /// Send multiple messages to different flows
     /// </summary>
     /// <param name="messages">Messages to be sent</param>
-    /// <param name="interrupt">Emit interrupt signal to receiving flows</param>
     /// <returns>A task which will complete when the messages have been persisted</returns>
-    public Task SendMessages(IReadOnlyList<BatchedMessage> messages, bool interrupt = true) 
-        => _registration.SendMessages(messages, interrupt);
-    
+    public Task SendMessages(IReadOnlyList<BatchedMessage> messages)
+        => _registration.SendMessages(messages);
+
     /// <summary>
     /// Schedule multiple flows at once
-    /// Execution of flows will be divided between the replicas 
+    /// Execution of flows will be divided between the replicas
     /// </summary>
     /// <param name="bulkWork">Instance ids and parameters for the flows</param>
     /// <returns>A task which will complete when the flows have been persisted</returns>

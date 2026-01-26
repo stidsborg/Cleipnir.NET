@@ -17,7 +17,7 @@ public static class Utils
         foreach (var effectId in effectIds)
             stringBuilder.AppendLine(new
                 {
-                    Id = effectId.Context == "" ? effectId.Id : effectId.Serialize(),
+                    Id = effectId.Serialize().ToString(),
                     Result = (await effects.GetResultBytes(effectId))?.ToStringFromUtf8Bytes() ?? "[EMPTY]"
                 }.ToString()
             );

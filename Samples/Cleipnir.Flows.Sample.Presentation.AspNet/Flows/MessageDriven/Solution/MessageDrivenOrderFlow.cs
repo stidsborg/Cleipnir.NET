@@ -4,33 +4,39 @@ namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.MessageDriven.Solution;
 
 public class MessageDrivenOrderFlow(Bus bus) : Flow<Order>
 {
-   public override async Task Run(Order order)
+    public override async Task Run(Order order)
     {
         var transactionId = await Capture(Guid.NewGuid);
 
         await ReserveFunds(order, transactionId);
-        var reservation = await Message<FundsReserved, FundsReservationFailed>(TimeSpan.FromSeconds(10));
-        if (!reservation.HasFirst)
+        var reservationResponse = await Message<FundsReservationResponse>(TimeSpan.FromSeconds(10));
+        if (reservationResponse is not FundsReserved)
             return;
 
         await ShipProducts(order);
-        var productsShipped = await Message<ProductsShipped, ProductsShipmentFailed>(TimeSpan.FromMinutes(5));
-        if (!productsShipped.HasFirst)
+        var shippingResponse = await Message<ProductsShippingResponse>(TimeSpan.FromMinutes(5));
+        if (shippingResponse is not ProductsShipped productsShipped)
+        {
             await CleanUp(FailedAt.ProductsShipped, order, transactionId);
-        var trackAndTraceNumber = productsShipped.First.TrackAndTraceNumber;
-        
+            return;
+        }
+        var trackAndTraceNumber = productsShipped.TrackAndTraceNumber;
+
         await CaptureFunds(order, transactionId);
-        var capture = await Message<FundsCaptured, FundsCaptureFailed>(TimeSpan.FromSeconds(10));
-        if (!capture.HasFirst)
+        var captureResponse = await Message<FundsCaptureResponse>(TimeSpan.FromSeconds(10));
+        if (captureResponse is not FundsCaptured)
+        {
             await CleanUp(FailedAt.FundsCaptured, order, transactionId);
-        
+            return;
+        }
+
         await SendOrderConfirmationEmail(order, trackAndTraceNumber);
-        await Message<OrderConfirmationEmailSent, OrderConfirmationEmailFailed>(TimeSpan.FromSeconds(10));
+        await Message<OrderConfirmationEmailResponse>(TimeSpan.FromSeconds(10));
     }
-   
+
     private async Task CleanUp(FailedAt failedAt, Order order, Guid transactionId)
     {
-        switch (failedAt) 
+        switch (failedAt)
         {
             case FailedAt.FundsReserved:
                 break;
@@ -59,8 +65,8 @@ public class MessageDrivenOrderFlow(Bus bus) : Flow<Order>
         FundsCaptured,
         OrderConfirmationEmailSent,
     }
-    
-    private Task ReserveFunds(Order order, Guid transactionId) 
+
+    private Task ReserveFunds(Order order, Guid transactionId)
         => Capture(() => bus.Send(new ReserveFunds(order.OrderId, order.TotalPrice, transactionId, order.CustomerId)));
     private Task ShipProducts(Order order)
         => Capture(() => bus.Send(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds)));

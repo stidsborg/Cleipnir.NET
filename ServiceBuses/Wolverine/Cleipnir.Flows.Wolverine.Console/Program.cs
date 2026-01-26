@@ -15,19 +15,14 @@ public static class Program
         var bus = host.Services.GetRequiredService<IMessageBus>();
         var store = host.Services.GetRequiredService<IFunctionStore>();
 
-        var simpleFlowStoredType = await store.TypeStore.InsertOrGetStoredType(nameof(SimpleFlow));
-        
         var testSize = 1_000;
         for (var i = 0; i < testSize; i++)
             await bus.PublishAsync(new MyMessage(i.ToString()));
 
         while (true)
         {
-            var succeeded = await store.GetSucceededFunctions(
-                simpleFlowStoredType,
-                DateTime.UtcNow.Ticks + 1_000_000
-            ).SelectAsync(f => f.Count);
-            if (succeeded == testSize)
+            var succeeded = await store.GetSucceededFunctions(DateTime.UtcNow.Ticks + 1_000_000);
+            if (succeeded.Count == testSize)
                 break;
 
             await Task.Delay(250);

@@ -1,7 +1,6 @@
-﻿using Cleipnir.ResilientFunctions.Domain;
+using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Helpers;
 using Cleipnir.ResilientFunctions.Messaging;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -64,7 +63,7 @@ public class UnitFlowsTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options()
+            new Options(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new EventDrivenUnitFlows(flowsContainer);
@@ -74,18 +73,18 @@ public class UnitFlowsTests
         await Task.Delay(10);
         var controlPanel = await flows.ControlPanel(instanceId: "someInstanceId");
         controlPanel.ShouldNotBeNull();
-        controlPanel.Status.ShouldBe(Status.Executing);
-        
-        var eventSourceWriter = flows.MessageWriter("someInstanceId");
-        await eventSourceWriter.AppendMessage(2);
+        controlPanel.Status.ShouldBe(Status.Suspended);
 
-        await controlPanel.WaitForCompletion();
+        var eventSourceWriter = flows.MessageWriter("someInstanceId");
+        await eventSourceWriter.AppendMessage(new IntWrapper(2));
+
+        await controlPanel.WaitForCompletion(allowPostponeAndSuspended: true);
 
         await controlPanel.Refresh();
         controlPanel.ShouldNotBeNull();
         controlPanel.Status.ShouldBe(Status.Succeeded);
     }
-    
+
     private class EventDrivenUnitFlows : Flows<EventDrivenUnitFlow, string>
     {
         public EventDrivenUnitFlows(FlowsContainer flowsContainer) 
@@ -96,9 +95,11 @@ public class UnitFlowsTests
     {
         public override async Task Run(string param)
         {
-            await Messages.FirstOfType<int>(maxWait: TimeSpan.MaxValue);
+            await Message<IntWrapper>();
         }
     }
+
+    public record IntWrapper(int Value);
     
     [TestMethod]
     public async Task FailingActionFlowCompletesWithError()
@@ -263,11 +264,11 @@ public class UnitFlowsTests
             "SomeInstanceId",
             param: "SomeParam",
             new InitialState(
-                [new MessageAndIdempotencyKey("InitialMessageValue")],
-                [new InitialEffect("InitialEffectId", "InitialEffectValue")]
+                [new MessageAndIdempotencyKey(new StringMessage("InitialMessageValue"))],
+                [new InitialEffect(0, "InitialEffectValue")]
             )
         );
-        
+
         flow.InitialEffectValue.ShouldBe("InitialEffectValue");
         flow.InitialMessageValue.ShouldBe("InitialMessageValue");
     }
@@ -276,11 +277,14 @@ public class UnitFlowsTests
     {
         public string? InitialEffectValue { get; set; }
         public string? InitialMessageValue { get; set; }
-        
+
         public override async Task Run(string _)
         {
-            InitialEffectValue = await Effect.Get<string>("InitialEffectId");
-            InitialMessageValue = await Messages.OfType<string>().First();
+            InitialEffectValue = await Capture(() => "should not be called");
+            var msg = await Message<StringMessage>();
+            InitialMessageValue = msg.Value;
         }
     }
+
+    private record StringMessage(string Value);
 }

@@ -1,6 +1,4 @@
 using Cleipnir.ResilientFunctions.Domain;
-using Cleipnir.ResilientFunctions.Helpers;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 
 namespace Cleipnir.Flows.Sample.Presentation.C_NewsletterSender.Distributed;
 
@@ -14,9 +12,8 @@ public class NewsletterParentFlow(NewsletterChildFlows childFlows) : Flow<MailAn
         var (recipients, subject, content) = param;
 
         var bulkWork = recipients
-            .Split(3)
-            .Select(emails => new MailAndRecipients(emails, subject, content))
-            .Select((mailAndRecipients, child) => new NewsletterChildWork(child, mailAndRecipients, Workflow.FlowId))
+            .Chunk(Math.Max(1, (recipients.Count + 2) / 3))
+            .Select((emails, child) => new NewsletterChildWork(child, new MailAndRecipients(emails.ToList(), subject, content), Workflow.FlowId))
             .Select(work =>
                 new BulkWork<NewsletterChildWork>(
                     Instance: $"{Workflow.FlowId.Instance}_Child{work.Child}",
@@ -26,10 +23,8 @@ public class NewsletterParentFlow(NewsletterChildFlows childFlows) : Flow<MailAn
         
         await childFlows.BulkSchedule(bulkWork);
 
-        await Messages
-            .OfType<EmailsSent>()
-            .Take(3)
-            .Completion(maxWait: TimeSpan.FromMinutes(30));
+        for (var i = 0; i < 3; i++)
+            await Message<EmailsSent>(maxWait: TimeSpan.FromMinutes(30));
         
         Console.WriteLine("Finished NewsletterParentFlow");
     }

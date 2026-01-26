@@ -10,7 +10,7 @@ public class AtMostOnceFlow : Flow<string>
     public override async Task Run(string rocketId)
     {
         await Effect.Capture(
-            id: "FireRocket",
+            alias: "FireRocket",
             _rocketSender.FireRocket,
             ResiliencyLevel.AtMostOnce
         );

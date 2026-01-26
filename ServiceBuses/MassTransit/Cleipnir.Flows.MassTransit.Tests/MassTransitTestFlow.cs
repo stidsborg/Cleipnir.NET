@@ -1,5 +1,3 @@
-using Cleipnir.ResilientFunctions.Domain;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.Tests;
@@ -11,8 +9,8 @@ public class MassTransitTestFlows : Flows<MassTransitTestFlow>
 
 public class MassTransitTestFlow : Flow
 {
-    public static volatile MyMessage? ReceivedMyMessage; 
-    public override async Task Run() => ReceivedMyMessage = await Messages.FirstOfType<MyMessage>();
+    public static volatile MyMessage? ReceivedMyMessage;
+    public override async Task Run() => ReceivedMyMessage = await Message<MyMessage>();
 }
 
 public class MassTransitTestFlowHandler(MassTransitTestFlows flows) : IConsumer<MyMessage>

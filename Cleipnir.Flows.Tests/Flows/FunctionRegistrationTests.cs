@@ -1,7 +1,6 @@
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Helpers;
 using Cleipnir.ResilientFunctions.Messaging;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Shouldly;
 
 namespace Cleipnir.Flows.Tests.Flows;
@@ -35,11 +34,11 @@ public class FunctionRegistrationTests
             "SomeInstanceId",
             param: "SomeParam",
             new InitialState(
-                [new MessageAndIdempotencyKey("InitialMessageValue")],
-                [new InitialEffect("InitialEffectId", "InitialEffectValue")]
+                [new MessageAndIdempotencyKey(new StringMessage("InitialMessageValue"))],
+                [new InitialEffect(0, "InitialEffectValue")]
             )
         );
-        
+
         flow.InitialEffectValue.ShouldBe("InitialEffectValue");
         flow.InitialMessageValue.ShouldBe("InitialMessageValue");
     }
@@ -48,12 +47,15 @@ public class FunctionRegistrationTests
     {
         public string? InitialEffectValue { get; set; }
         public string? InitialMessageValue { get; set; }
-        
+
         public override async Task<string> Run(string _)
         {
-            InitialEffectValue = await Effect.Get<string>("InitialEffectId");
-            InitialMessageValue = await Messages.OfType<string>().First();
+            InitialEffectValue = await Capture(() => "should not be called");
+            var msg = await Message<StringMessage>();
+            InitialMessageValue = msg.Value;
             return "";
         }
     }
+
+    private record StringMessage(string Value);
 }

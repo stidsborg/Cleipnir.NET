@@ -26,10 +26,6 @@ public static class CallChain
                 {
                     return new Result<TResult>(Suspend.Invocation);
                 }
-                catch (PostponeInvocationException postponeInvocationException)
-                {
-                    return new Result<TResult>(Postpone.Until(postponeInvocationException.PostponeUntil));
-                }
                 catch (FatalWorkflowException exception)
                 {
                     exception.FlowId = w.FlowId;

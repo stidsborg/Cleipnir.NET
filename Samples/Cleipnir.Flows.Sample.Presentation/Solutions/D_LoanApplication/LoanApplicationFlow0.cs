@@ -1,5 +1,4 @@
 ﻿using Cleipnir.Flows.Sample.Presentation.Solutions.D_LoanApplication.Other;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 
 namespace Cleipnir.Flows.Sample.Presentation.Solutions.D_LoanApplication;
 
@@ -9,11 +8,10 @@ public class LoanApplicationFlow0 : Flow<LoanApplication>
     public override async Task Run(LoanApplication loanApplication)
     {
         await MessageBroker.Send(new PerformCreditCheck(loanApplication.Id, loanApplication.CustomerId, loanApplication.Amount));
-        
-        var outcomes = await Messages
-            .OfType<CreditCheckOutcome>()
-            .Take(3)
-            .Completion();
+
+        var outcomes = new List<CreditCheckOutcome>();
+        for (var i = 0; i < 3; i++)
+            outcomes.Add(await Message<CreditCheckOutcome>());
 
         CommandAndEvents decision = outcomes.All(o => o.Approved)
             ? new LoanApplicationApproved(loanApplication)

@@ -1,6 +1,5 @@
-﻿using Cleipnir.ResilientFunctions.Domain;
+using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Messaging;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -60,7 +59,7 @@ public class ParamlessFlowsTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options()
+            new Options(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new EventDrivenParamlessFlows(flowsContainer); 
@@ -69,12 +68,12 @@ public class ParamlessFlowsTests
         await Task.Delay(10);
         var controlPanel = await flows.ControlPanel(instanceId: "someInstanceId");
         controlPanel.ShouldNotBeNull();
-        controlPanel.Status.ShouldBe(Status.Executing);
-        
-        var eventSourceWriter = flows.MessageWriter("someInstanceId");
-        await eventSourceWriter.AppendMessage(2);
+        controlPanel.Status.ShouldBe(Status.Suspended);
 
-        await controlPanel.WaitForCompletion();
+        var eventSourceWriter = flows.MessageWriter("someInstanceId");
+        await eventSourceWriter.AppendMessage(new StringMessage("hello"));
+
+        await controlPanel.WaitForCompletion(allowPostponeAndSuspended: true);
 
         await controlPanel.Refresh();
         controlPanel.ShouldNotBeNull();
@@ -91,9 +90,11 @@ public class ParamlessFlowsTests
     {
         public override async Task Run()
         {
-            await Messages.FirstOfType<int>(maxWait: TimeSpan.MaxValue);
+            await Message<StringMessage>();
         }
     }
+
+    public record StringMessage(string Value);
     
     [TestMethod]
     public async Task FailingFlowCompletesWithError()
@@ -156,11 +157,11 @@ public class ParamlessFlowsTests
         await flows.Run(
             "SomeInstanceId",
             new InitialState(
-                [new MessageAndIdempotencyKey("InitialMessageValue")],
-                [new InitialEffect("InitialEffectId", "InitialEffectValue")]
+                [new MessageAndIdempotencyKey(new StringMessage("InitialMessageValue"))],
+                [new InitialEffect(0, "InitialEffectValue")]
             )
         );
-        
+
         flow.InitialEffectValue.ShouldBe("InitialEffectValue");
         flow.InitialMessageValue.ShouldBe("InitialMessageValue");
     }
@@ -169,11 +170,12 @@ public class ParamlessFlowsTests
     {
         public string? InitialEffectValue { get; set; }
         public string? InitialMessageValue { get; set; }
-        
+
         public override async Task Run()
         {
-            InitialEffectValue = await Effect.Get<string>("InitialEffectId");
-            InitialMessageValue = await Messages.OfType<string>().First();
+            InitialEffectValue = await Capture(() => "should not be called");
+            var msg = await Message<StringMessage>();
+            InitialMessageValue = msg.Value;
         }
     }
 }

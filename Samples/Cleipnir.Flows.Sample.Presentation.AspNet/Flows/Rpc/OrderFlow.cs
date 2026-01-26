@@ -15,15 +15,15 @@ public class OrderFlow(
 {
     public override async Task Run(Order order)
     {
-        var transactionId = await Effect.Capture(Guid.NewGuid);
+        var transactionId = await Capture(Guid.NewGuid);
 
-        await paymentProviderClient.Reserve(transactionId, order.CustomerId, order.TotalPrice);
+        await Capture(() => paymentProviderClient.Reserve(transactionId, order.CustomerId, order.TotalPrice));
         var trackAndTrace = await Effect.Capture(
             () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds),
             ResiliencyLevel.AtMostOnce
         );
-        await paymentProviderClient.Capture(transactionId);
-        await emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds);
+        await Capture(() => paymentProviderClient.Capture(transactionId));
+        await Capture(() => emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds));
     }
     
     #region Polly

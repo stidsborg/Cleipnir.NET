@@ -1,6 +1,5 @@
 using Cleipnir.Flows.AspNet;
 using Cleipnir.ResilientFunctions.Helpers;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Rebus.Bus;
@@ -18,11 +17,11 @@ public class IntegrationTests
 
     public class RebusTestFlow : Flow
     {
-        public static volatile MyMessage? ReceivedMyMessage; 
-        
+        public static volatile MyMessage? ReceivedMyMessage;
+
         public override async Task Run()
         {
-            ReceivedMyMessage = await Messages.FirstOfType<MyMessage>();
+            ReceivedMyMessage = await Message<MyMessage>();
         }
     }
 

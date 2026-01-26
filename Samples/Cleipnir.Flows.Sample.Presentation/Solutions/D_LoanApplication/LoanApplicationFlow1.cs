@@ -1,5 +1,4 @@
 ﻿using Cleipnir.Flows.Sample.Presentation.Solutions.D_LoanApplication.Other;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 
 namespace Cleipnir.Flows.Sample.Presentation.Solutions.D_LoanApplication;
 
@@ -11,21 +10,13 @@ public class LoanApplicationFlow1 : Flow<LoanApplication>
         await MessageBroker.Send(new PerformCreditCheck(loanApplication.Id, loanApplication.CustomerId, loanApplication.Amount));
 
         var outcomes = new List<CreditCheckOutcome>();
-        var messagesTask = Messages
-            .OfType<CreditCheckOutcome>()
-            .Take(3)
-            .Select(o =>
-            {
-                outcomes.Add(o);
-                return o;
-            })
-            .Completion();
+        for (var i = 0; i < 3; i++)
+        {
+            var outcome = await Message<CreditCheckOutcome>(TimeSpan.FromMinutes(15));
+            if (outcome == null) break;
+            outcomes.Add(outcome);
+        }
 
-        await Task.WhenAny(
-            messagesTask,
-            Task.Delay(TimeSpan.FromMinutes(15))
-        );
-        
         CommandAndEvents decision = outcomes.All(o => o.Approved)
             ? new LoanApplicationApproved(loanApplication)
             : new LoanApplicationRejected(loanApplication);

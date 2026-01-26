@@ -1,6 +1,4 @@
-﻿using Cleipnir.ResilientFunctions.Reactive.Extensions;
-
-namespace Cleipnir.Flows.Sample.Presentation.B_OrderFlow_Messaging;
+﻿namespace Cleipnir.Flows.Sample.Presentation.B_OrderFlow_Messaging;
 
 [GenerateFlows]
 public class OrderFlow : Flow<Order>
@@ -19,15 +17,15 @@ public class OrderFlow : Flow<Order>
         var transactionId = await Effect.CreateOrGet("TransactionId", Guid.NewGuid());
 
         await Bus.Send(new ReserveFunds(order.OrderId, order.TotalPrice, transactionId, order.CustomerId));
-        await Messages.FirstOfType<FundsReserved>();
+        await Message<FundsReserved>();
 
         await Bus.Send(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds));
-        await Messages.FirstOfType<ProductsShipped>();
+        await Message<ProductsShipped>();
         
         await Bus.Send(new CaptureFunds(order.OrderId, order.CustomerId, transactionId));
-        await Messages.FirstOfType<FundsCaptured>();
+        await Message<FundsCaptured>();
 
         await Bus.Send(new SendOrderConfirmationEmail(order.OrderId, order.CustomerId));
-        await Messages.FirstOfType<OrderConfirmationEmailSent>();
+        await Message<OrderConfirmationEmailSent>();
     }
 }

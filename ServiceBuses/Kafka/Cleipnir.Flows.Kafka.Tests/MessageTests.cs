@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Messaging;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Confluent.Kafka;
 
 namespace Cleipnir.Flows.Kafka.Tests;
@@ -18,7 +17,7 @@ public sealed class MessageTests
             flowFactory: () => new TestFlow()
         );
         var scheduled = await flows.Schedule(instanceId);
-        
+
         var topic = $"topic-{Guid.NewGuid():N}";
         using var producer = ProduceMessages(topic, instanceId);
         _ = ConsumeMessages(
@@ -30,7 +29,7 @@ public sealed class MessageTests
                     .ToList()
                 )
         );
-        
+
         await scheduled.Completion(maxWait: TimeSpan.FromSeconds(15));
     }
 
@@ -38,10 +37,8 @@ public sealed class MessageTests
     {
         public override async Task Run()
         {
-            await Messages
-                .OfType<TestMessage>()
-                .Take(10)
-                .Completion();
+            for (var i = 0; i < 10; i++)
+                await Message<TestMessage>();
         }
     }
 

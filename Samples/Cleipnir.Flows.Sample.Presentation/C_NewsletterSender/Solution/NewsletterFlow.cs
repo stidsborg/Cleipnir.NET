@@ -1,5 +1,4 @@
-﻿using Cleipnir.ResilientFunctions.Domain;
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MimeKit;
 using MimeKit.Text;
 
@@ -8,15 +7,14 @@ namespace Cleipnir.Flows.Sample.Presentation.C_NewsletterSender.Solution;
 [GenerateFlows]
 public class NewsletterFlow : Flow<MailAndRecipients>
 {
-    public required NewsletterState State { get; init; }
-    
     public override async Task Run(MailAndRecipients mailAndRecipients)
     {
         var (recipients, subject, content) = mailAndRecipients;
         using var client = new SmtpClient();
         await client.ConnectAsync("mail.smtpbucket.com", 8025);
-        
-        for (var atRecipient = State.AtRecipient; atRecipient < mailAndRecipients.Recipients.Count; atRecipient++)
+
+        var atRecipient = await Effect.CreateOrGet("AtRecipient", 0);
+        for (; atRecipient < mailAndRecipients.Recipients.Count; atRecipient++)
         {
             var recipient = recipients[atRecipient];
             var message = new MimeMessage();
@@ -27,14 +25,8 @@ public class NewsletterFlow : Flow<MailAndRecipients>
             message.Body = new TextPart(TextFormat.Html) { Text = content };
             await client.SendAsync(message);
 
-            State.AtRecipient = atRecipient;
-            await State.Save();
+            await Effect.Upsert("AtRecipient", atRecipient);
         }
-    }
-    
-    public class NewsletterState : FlowState
-    {
-        public int AtRecipient { get; set; }
     }
 }
 

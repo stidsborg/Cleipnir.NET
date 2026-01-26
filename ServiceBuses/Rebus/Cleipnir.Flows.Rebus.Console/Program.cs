@@ -17,18 +17,13 @@ internal static class Program
         var bus = host.Services.GetRequiredService<IBus>();
         var store = host.Services.GetRequiredService<IFunctionStore>();
         
-        var simpleFlowStoredType = await store.TypeStore.InsertOrGetStoredType(nameof(SimpleFlow));
-        
         for (var i = 0; i < 1_000; i++)
             await bus.SendLocal(new MyMessage(i.ToString()));
-        
+
         while (true)
         {
-            var succeeded = await store.GetSucceededFunctions(
-                simpleFlowStoredType,
-                DateTime.UtcNow.Ticks + 1_000_000
-            ).SelectAsync(f => f.Count);
-            if (succeeded == 1_000)
+            var succeeded = await store.GetSucceededFunctions(DateTime.UtcNow.Ticks + 1_000_000);
+            if (succeeded.Count == 1_000)
                 break;
             await Task.Delay(250);
         }

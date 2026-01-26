@@ -1,4 +1,3 @@
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 using Rebus.Handlers;
 
 namespace Cleipnir.Flows.Rebus.Console;
@@ -8,7 +7,7 @@ public class SimpleFlow : Flow
 {
     public override async Task Run()
     {
-        var msg = await Messages.FirstOfType<MyMessage>();
+        var msg = await Message<MyMessage>();
         System.Console.WriteLine($"SimpleFlow({msg}) executed");
     }
 }

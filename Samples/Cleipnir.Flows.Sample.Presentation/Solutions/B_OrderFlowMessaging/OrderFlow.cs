@@ -1,6 +1,4 @@
 ﻿using Cleipnir.Flows.Sample.Presentation.Solutions.B_OrderFlowMessaging.Other;
-using Cleipnir.ResilientFunctions.Helpers;
-using Cleipnir.ResilientFunctions.Reactive.Extensions;
 
 namespace Cleipnir.Flows.Sample.Presentation.Solutions.B_OrderFlowMessaging;
 
@@ -10,20 +8,19 @@ public class OrderFlow(Bus bus) : Flow<Order>
     public override async Task Run(Order order)
     {
         var transactionId = await Effect.CreateOrGet("TransactionId", Guid.NewGuid());
-        
+
         await bus.Send(ReserveFundsMsg(order, transactionId));
-        await Messages.FirstOfType<FundsReserved>();
+        await Message<FundsReserved>();
 
         await bus.Send(ShipProductsMsg(order));
-        var trackAndTrace = await Messages
-            .FirstOfType<ProductsShipped>()
-            .SelectAsync(msg => msg.TrackAndTrace);
-        
+        var productsShipped = await Message<ProductsShipped>();
+        var trackAndTrace = productsShipped.TrackAndTrace;
+
         await bus.Send(CaptureFundsMsg(order, transactionId));
-        await Messages.FirstOfType<FundsCaptured>();
+        await Message<FundsCaptured>();
 
         await bus.Send(SendOrderConfirmationEmailMsg(order, trackAndTrace));
-        await Messages.FirstOfType<OrderConfirmationEmailSent>();
+        await Message<OrderConfirmationEmailSent>();
     }
 
     #region MessageFactories

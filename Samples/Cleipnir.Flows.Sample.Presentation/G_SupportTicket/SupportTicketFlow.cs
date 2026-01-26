@@ -11,8 +11,8 @@ public class SupportTicketFlow : Flow<SupportTicketRequest>
         {
             var customerSupportAgent = customerSupportAgents[i % customerSupportAgents.Length]; 
             await Effect.Capture(
-                id: $"RequestSupportForTicket{i}",
-                work: () => RequestSupportForTicket(supportTicketId, customerSupportAgent, iteration: i)
+                $"RequestSupportForTicket{i}",
+                () => RequestSupportForTicket(supportTicketId, customerSupportAgent, iteration: i)
             );
 
             //wait for ticket taken, ticket rejected or timeout

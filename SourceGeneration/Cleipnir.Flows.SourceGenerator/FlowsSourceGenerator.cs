@@ -1,5 +1,6 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Cleipnir.Flows.SourceGenerator.Utils;
 
@@ -12,21 +13,15 @@ namespace Cleipnir.Flows.SourceGenerator
         private const string UnitFlowType = "Cleipnir.Flows.Flow`1";
         private const string ResultFlowType = "Cleipnir.Flows.Flow`2";
         private const string IgnoreAttribute = "Cleipnir.Flows.SourceGeneration.Ignore";
-        
-        private volatile INamedTypeSymbol? _paramlessFlowTypeSymbol;
-        private volatile INamedTypeSymbol? _unitFlowTypeSymbol;
-        private volatile INamedTypeSymbol? _resultFlowTypeSymbol;
-        private volatile INamedTypeSymbol? _ignoreAttribute;
-        
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // Initialization logic
             var provider = context.SyntaxProvider.ForAttributeWithMetadataName(
                 "Cleipnir.Flows.GenerateFlowsAttribute",
                 (node, ctx) => node is ClassDeclarationSyntax,
                 transform: (ctx, _) => Transform(ctx)
             ).Where(flowInformation => flowInformation is not null);
-            
+
             context.RegisterSourceOutput(
                 provider,
                 (ctx, generatedFlowInformation) =>
@@ -34,53 +29,51 @@ namespace Cleipnir.Flows.SourceGenerator
             );
         }
 
-        public GeneratedFlowInformation? Transform(GeneratorAttributeSyntaxContext context)
+        private static GeneratedFlowInformation? Transform(GeneratorAttributeSyntaxContext context)
         {
-            
-            if (_paramlessFlowTypeSymbol == null)
-            {
-                var complication = context.SemanticModel.Compilation;
-                _unitFlowTypeSymbol = complication.GetTypeByMetadataName(UnitFlowType);
-                _resultFlowTypeSymbol = complication.GetTypeByMetadataName(ResultFlowType);
-                _ignoreAttribute = complication.GetTypeByMetadataName(IgnoreAttribute);
-                _paramlessFlowTypeSymbol = complication.GetTypeByMetadataName(ParamlessFlowType);
-            }
+            var compilation = context.SemanticModel.Compilation;
+            var paramlessFlowTypeSymbol = compilation.GetTypeByMetadataName(ParamlessFlowType);
+            var unitFlowTypeSymbol = compilation.GetTypeByMetadataName(UnitFlowType);
+            var resultFlowTypeSymbol = compilation.GetTypeByMetadataName(ResultFlowType);
+            var ignoreAttributeSymbol = compilation.GetTypeByMetadataName(IgnoreAttribute);
 
-            if (_paramlessFlowTypeSymbol == null || _unitFlowTypeSymbol == null || _resultFlowTypeSymbol == null)
+            if (paramlessFlowTypeSymbol == null || unitFlowTypeSymbol == null || resultFlowTypeSymbol == null)
                 return null;
 
             var classDeclaration = (ClassDeclarationSyntax) context.TargetNode;
-            if (classDeclaration.Modifiers.Any(m => m.Value is "private"))
+            if (classDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
                 return null;
 
-            var accessibilityModifier = classDeclaration.Modifiers.Any(m => m.Value is "public")
+            var accessibilityModifier = classDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword))
                 ? "public"
                 : "internal";
 
             var semanticModel = context.SemanticModel;
             var flowType = (INamedTypeSymbol?)semanticModel.GetDeclaredSymbol(classDeclaration);
-            
-            if (
-                flowType == null ||
-                !InheritsFromParamlessFlowType(flowType, _paramlessFlowTypeSymbol) &&
-                !InheritsFromFlowType(flowType, _unitFlowTypeSymbol) &&
-                !InheritsFromFlowType(flowType, _resultFlowTypeSymbol)
-            ) return null;
+
+            if (flowType == null ||
+                (!InheritsFromParamlessFlowType(flowType, paramlessFlowTypeSymbol) &&
+                 !InheritsFromFlowType(flowType, unitFlowTypeSymbol) &&
+                 !InheritsFromFlowType(flowType, resultFlowTypeSymbol)))
+                return null;
 
             if (flowType.ContainingType != null || flowType.IsFileLocal)
                 return null;
 
-            var hasIgnoreAttribute = flowType
-                .GetAttributes()
-                .Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, _ignoreAttribute));
-            if (hasIgnoreAttribute)
-                return null;
-            
+            if (ignoreAttributeSymbol != null)
+            {
+                var hasIgnoreAttribute = flowType
+                    .GetAttributes()
+                    .Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, ignoreAttributeSymbol));
+                if (hasIgnoreAttribute)
+                    return null;
+            }
+
             var baseType = flowType.BaseType;
             if (baseType == null)
                 return null;
-            
-            if (InheritsFromParamlessFlowType(flowType, _paramlessFlowTypeSymbol))
+
+            if (InheritsFromParamlessFlowType(flowType, paramlessFlowTypeSymbol))
                 return GenerateCode(
                     new FlowInformation(
                         flowType,
@@ -93,13 +86,21 @@ namespace Cleipnir.Flows.SourceGenerator
                 );
 
             var baseTypeTypeArguments = baseType.TypeArguments;
-            var paramType = (INamedTypeSymbol?) (baseTypeTypeArguments.Length > 0 ? baseTypeTypeArguments[0] : null);
-            var resultType = (INamedTypeSymbol?) (baseTypeTypeArguments.Length == 2 ? baseTypeTypeArguments[1] : null);
+            var paramType = baseTypeTypeArguments.Length > 0
+                ? baseTypeTypeArguments[0] as INamedTypeSymbol
+                : null;
+            var resultType = baseTypeTypeArguments.Length == 2
+                ? baseTypeTypeArguments[1] as INamedTypeSymbol
+                : null;
 
             var runMethod = flowType.GetMembers()
                 .OfType<IMethodSymbol>()
-                .Single(m => m.Name == "Run" && m.IsOverride);
-            var parameterName = runMethod.Parameters.Single().Name;
+                .FirstOrDefault(m => m.Name == "Run" && m.IsOverride);
+
+            if (runMethod == null || runMethod.Parameters.Length == 0)
+                return null;
+
+            var parameterName = runMethod.Parameters[0].Name;
 
             return
                 GenerateCode(
@@ -114,40 +115,40 @@ namespace Cleipnir.Flows.SourceGenerator
                 );
         }
 
-        private GeneratedFlowInformation GenerateCode(FlowInformation flowInformation)
+        private static GeneratedFlowInformation GenerateCode(FlowInformation flowInformation)
         {
             var flowsName = $"{flowInformation.FlowTypeSymbol.Name}s";
             var flowsNamespace = GetNamespace(flowInformation.FlowTypeSymbol);
             var flowType = GetFullyQualifiedName(flowInformation.FlowTypeSymbol);
             var flowName = flowInformation.FlowTypeSymbol.Name;
-            var paramType = flowInformation.ParamTypeSymbol == null 
-                ? null 
+            var paramType = flowInformation.ParamTypeSymbol == null
+                ? null
                 : GetFullyQualifiedName(flowInformation.ParamTypeSymbol);
-            var resultType = flowInformation.ResultTypeSymbol != null 
+            var resultType = flowInformation.ResultTypeSymbol != null
                 ? GetFullyQualifiedName(flowInformation.ResultTypeSymbol)
                 : null;
 
             var accessibilityModifier = flowInformation.AccessibilityModifier;
-            
+
             string generatedCode;
             if (flowInformation.Paramless)
             {
-                generatedCode = 
+                generatedCode =
 $@"namespace {flowsNamespace}
 {{
     #nullable enable
     [Cleipnir.Flows.SourceGeneration.SourceGeneratedFlowsAttribute]
     {accessibilityModifier} class {flowsName} : Cleipnir.Flows.Flows<{flowType}>
-    {{        
+    {{
         public {flowsName}(Cleipnir.Flows.FlowsContainer flowsContainer, string flowName = ""{flowName}"", Cleipnir.Flows.FlowOptions? options = null)
-            : base(flowName, flowsContainer, options) {{ }}             
+            : base(flowName, flowsContainer, options) {{ }}
     }}
-    #nullable disable   
-}}";                
+    #nullable restore
+}}";
             }
             else if (resultType == null)
             {
-                generatedCode = 
+                generatedCode =
 $@"namespace {flowsNamespace}
 {{
     #nullable enable
@@ -155,14 +156,14 @@ $@"namespace {flowsNamespace}
     {accessibilityModifier} class {flowsName} : Cleipnir.Flows.Flows<{flowType}, {paramType}>
     {{
         public {flowsName}(Cleipnir.Flows.FlowsContainer flowsContainer, string flowName = ""{flowName}"", Cleipnir.Flows.FlowOptions? options = null)
-            : base(flowName, flowsContainer, options) {{ }}      
+            : base(flowName, flowsContainer, options) {{ }}
     }}
-    #nullable disable
+    #nullable restore
 }}";
             }
             else
             {
-                generatedCode = 
+                generatedCode =
 $@"namespace {flowsNamespace}
 {{
     #nullable enable
@@ -172,10 +173,10 @@ $@"namespace {flowsNamespace}
         public {flowsName}(Cleipnir.Flows.FlowsContainer flowsContainer, string flowName = ""{flowName}"", Cleipnir.Flows.FlowOptions? options = null)
             : base(flowName, flowsContainer, options) {{ }}
     }}
-    #nullable disable
+    #nullable restore
 }}";
             }
-            
+
             return new GeneratedFlowInformation(generatedCode, GetFileName(flowInformation));
         }
     }

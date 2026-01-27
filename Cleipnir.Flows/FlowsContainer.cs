@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Cleipnir.Flows.CrossCutting;
 using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,43 +13,34 @@ public class FlowsContainer : IDisposable
 {
     internal readonly IServiceProvider ServiceProvider;
     internal readonly FunctionsRegistry FunctionRegistry;
-    internal readonly List<IMiddleware> Middlewares;
     private readonly Dictionary<string, Type> _registeredFlows = new();
     private readonly Lock _lock = new();
 
     public FunctionsRegistry Functions => FunctionRegistry;
-    
+
     public FlowsContainer(IFunctionStore flowStore, IServiceProvider serviceProvider, Options options)
     {
         ServiceProvider = serviceProvider;
-        
+
         if (options.UnhandledExceptionHandler == null && serviceProvider.GetService<ILogger>() != null)
         {
             var logger = serviceProvider.GetRequiredService<ILogger>();
             options = new Options(
                     unhandledExceptionHandler: ex => logger.LogError(ex, "Unhandled exception in Cleipnir Flows"),
-                    options.RetentionPeriod, 
+                    options.RetentionPeriod,
                     options.RetentionCleanUpFrequency,
-                    options.LeaseLength, 
+                    options.LeaseLength,
                     options.EnableWatchdogs,
                     options.WatchdogCheckFrequency,
                     options.MessagesPullFrequency,
                     options.MessagesDefaultMaxWaitForCompletion,
-                    options.DelayStartup, 
-                    options.MaxParallelRetryInvocations, 
+                    options.DelayStartup,
+                    options.MaxParallelRetryInvocations,
                     options.Serializer
                 );
         }
-             
+
         FunctionRegistry = new FunctionsRegistry(flowStore, options.MapToSettings());
-        Middlewares = options.Middlewares
-            .Select(m => m switch
-            {
-                MiddlewareInstance middlewareInstance => middlewareInstance.Middleware,
-                MiddlewareType middlewareType => (IMiddleware) serviceProvider.GetRequiredService(middlewareType.Type),
-                _ => throw new ArgumentOutOfRangeException(nameof(m))
-            })
-            .ToList();
     }
 
     internal void EnsureNoExistingRegistration(string flowName, Type flowType)
@@ -62,7 +51,7 @@ public class FlowsContainer : IDisposable
             else
                 _registeredFlows[flowName] = flowType;
     }
-    
+
     public void Dispose() => FunctionRegistry.Dispose();
     public Task ShutdownGracefully(TimeSpan? maxWait = null) => FunctionRegistry.ShutdownGracefully(maxWait);
 
@@ -71,23 +60,23 @@ public class FlowsContainer : IDisposable
         flowName ??= typeof(TFlow).Name;
         return new Flows<TFlow>(flowName, flowsContainer: this, options ?? new FlowOptions(), flowFactory);
     }
-    
+
     public Flows<TFlow, TParam> RegisterAnonymousFlow<TFlow, TParam>(Func<TFlow>? flowFactory = null, string? flowName = null, FlowOptions? options = null) where TFlow : Flow<TParam> where TParam : notnull
     {
         flowName ??= typeof(TFlow).Name;
         return new Flows<TFlow, TParam>(flowName, flowsContainer: this, options ?? new FlowOptions(), flowFactory);
     }
-    
+
     public Flows<TFlow, TParam, TResult> RegisterAnonymousFlow<TFlow, TParam, TResult>(Func<TFlow>? flowFactory = null, string? flowName = null, FlowOptions? options = null) where TFlow : Flow<TParam, TResult> where TResult : notnull where TParam : notnull
     {
         flowName ??= typeof(TFlow).Name;
         return new Flows<TFlow, TParam, TResult>(flowName, flowsContainer: this, options ?? new FlowOptions(), flowFactory);
     }
-    
+
     public static FlowsContainer Create(
         IServiceProvider? serviceProvider = null,
-        IFunctionStore? functionStore = null, 
-        Options? options = null) 
+        IFunctionStore? functionStore = null,
+        Options? options = null)
         => new(
             functionStore ?? new InMemoryFunctionStore(),
             serviceProvider ?? new ServiceCollection().BuildServiceProvider(),

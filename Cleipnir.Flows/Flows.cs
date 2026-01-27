@@ -1,15 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Cleipnir.Flows.CrossCutting;
 using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.CoreRuntime.Invocation;
 using Cleipnir.ResilientFunctions.Domain;
+using Cleipnir.ResilientFunctions.Domain.Exceptions.Commands;
 using Cleipnir.ResilientFunctions.Helpers;
 using Cleipnir.ResilientFunctions.Messaging;
-using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cleipnir.Flows;
@@ -25,18 +23,9 @@ public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
 {
     public static Type FlowType { get; } = typeof(TFlow);
 
-    private FlowsContainer FlowsContainer { get; }
-    private readonly Func<TFlow>? _flowFactory;
-
-    protected BaseFlows(FlowsContainer flowsContainer, Func<TFlow>? flowFactory)
-    {
-        FlowsContainer = flowsContainer;
-        _flowFactory = flowFactory;
-    }
-
     public abstract Task Interrupt(IEnumerable<FlowInstance> instances);
 
-    private static Action<TFlow, Workflow> CreateWorkflowSetter()
+    protected static Action<TFlow, Workflow> CreateWorkflowSetter()
     {
         ParameterExpression flowParam = Expression.Parameter(typeof(TFlow), "flow");
         ParameterExpression contextParam = Expression.Parameter(typeof(Workflow), "workflow");
@@ -55,28 +44,6 @@ public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
         var setter = lambdaExpr.Compile();
         return setter;
     }
-    
-    protected Next<TFlow, TParam, TResult> CreateMiddlewareCallChain<TParam, TResult>(Func<TFlow, TParam, Task<TResult>> runFlow) where TParam : notnull
-    {
-        var serviceProvider = FlowsContainer.ServiceProvider;
-        var workflowSetter = CreateWorkflowSetter();
-        return CallChain.Create<TFlow, TParam, TResult>(
-            FlowsContainer.Middlewares,
-            runFlow: async (param, workflow) =>
-            {
-                await using var scope = serviceProvider.CreateAsyncScope();
-
-                var flow = _flowFactory == null
-                    ? scope.ServiceProvider.GetRequiredService<TFlow>()
-                    : _flowFactory();
-                
-                workflowSetter(flow, workflow);
-                
-                var result = await runFlow(flow, param);
-                return result;
-            }
-        );
-    }
 
     public abstract Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : class;
 }
@@ -85,18 +52,43 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
 {
     private readonly ParamlessRegistration _registration;
 
-    public Flows(string flowName, FlowsContainer flowsContainer, FlowOptions? options = null, Func<TFlow>? flowFactory = null) : base(flowsContainer, flowFactory)
+    public Flows(string flowName, FlowsContainer flowsContainer, FlowOptions? options = null, Func<TFlow>? flowFactory = null)
     {
-        var callChain = CreateMiddlewareCallChain<Unit, Unit>(runFlow: async (flow, _) =>
-        {
-            await flow.Run();
-            return Unit.Instance;
-        });
-        
+        var serviceProvider = flowsContainer.ServiceProvider;
+        var workflowSetter = CreateWorkflowSetter();
+
         flowsContainer.EnsureNoExistingRegistration(flowName, typeof(TFlow));
         _registration = flowsContainer.FunctionRegistry.RegisterParamless(
             flowName,
-            inner: workflow => callChain(Unit.Instance, workflow),
+            inner: async w =>
+            {
+                try
+                {
+                    await using var scope = serviceProvider.CreateAsyncScope();
+
+                    var flow = flowFactory == null
+                        ? scope.ServiceProvider.GetRequiredService<TFlow>()
+                        : flowFactory();
+
+                    workflowSetter(flow, w);
+
+                    await flow.Run();
+                    return new Result<Unit>(Unit.Instance);
+                }
+                catch (SuspendInvocationException)
+                {
+                    return new Result<Unit>(Suspend.Invocation);
+                }
+                catch (FatalWorkflowException exception)
+                {
+                    exception.FlowId = w.FlowId;
+                    return new Result<Unit>(exception);
+                }
+                catch (Exception exception)
+                {
+                    return new Result<Unit>(FatalWorkflowException.CreateNonGeneric(w.FlowId, exception));
+                }
+            },
             (options ?? FlowOptions.Default).MapToLocalSettings()
         );
     }
@@ -112,7 +104,7 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
         return controlPanel;
     }
 
-    public MessageWriter MessageWriter(FlowInstance instanceId) 
+    public MessageWriter MessageWriter(FlowInstance instanceId)
         => _registration.MessageWriters.For(instanceId);
 
     /// <summary>
@@ -121,7 +113,7 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <param name="instanceId">Instance id for the flow</param>
     /// <param name="initialState">Optional initial state with pre-filled messages and effects</param>
     /// <returns>A task which will complete when the flow has completed its execution</returns>
-    public Task Run(FlowInstance instanceId, InitialState? initialState = null) 
+    public Task Run(FlowInstance instanceId, InitialState? initialState = null)
         => _registration.Invoke(instanceId, initialState);
 
     /// <summary>
@@ -133,10 +125,10 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <returns>A task which will complete when the flow has been persisted</returns>
     public Task<Scheduled> Schedule(FlowInstance instanceId, InitialState? initialState = null)
         => _registration.Schedule(instanceId, initialState: initialState);
-    
+
     /// <summary>
     /// Schedule the flow for future execution.
-    /// Flow can be executed at any replica 
+    /// Flow can be executed at any replica
     /// </summary>
     /// <param name="instanceId">Instance id for the flow</param>
     /// <param name="delayUntil">Time when the flow should be executed</param>
@@ -144,7 +136,7 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     public Task ScheduleAt(FlowInstance instanceId, DateTime delayUntil) => _registration.ScheduleAt(instanceId, delayUntil);
     /// <summary>
     /// Schedule the flow for future execution.
-    /// Flow can be executed at any replica 
+    /// Flow can be executed at any replica
     /// </summary>
     /// <param name="instanceId">Instance id for the flow</param>
     /// <param name="delay">Delay before the flow is executed</param>
@@ -159,7 +151,7 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
     /// <typeparam name="T">Message type</typeparam>
     /// <returns>A task which will complete when the message has been persisted</returns>
-    public override Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) 
+    public override Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null)
         => _registration.RouteMessage(message, correlationId, idempotencyKey);
 
     /// <summary>
@@ -204,20 +196,44 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     where TParam : notnull
 {
     private readonly ActionRegistration<TParam> _registration;
-    
-    public Flows(string flowName, FlowsContainer flowsContainer, FlowOptions? options = null, Func<TFlow>? flowFactory = null) : base(flowsContainer, flowFactory)
+
+    public Flows(string flowName, FlowsContainer flowsContainer, FlowOptions? options = null, Func<TFlow>? flowFactory = null)
     {
-        var callChain = CreateMiddlewareCallChain<TParam, Unit>(
-            runFlow: async (flow, param) =>
-            {
-                await flow.Run(param);
-                return Unit.Instance;
-            });
-        
+        var serviceProvider = flowsContainer.ServiceProvider;
+        var workflowSetter = CreateWorkflowSetter();
+
         flowsContainer.EnsureNoExistingRegistration(flowName, typeof(TFlow));
         _registration = flowsContainer.FunctionRegistry.RegisterAction<TParam>(
             flowName,
-            inner: (param, workflow) => callChain(param, workflow),
+            inner: async (p, w) =>
+            {
+                try
+                {
+                    await using var scope = serviceProvider.CreateAsyncScope();
+
+                    var flow = flowFactory == null
+                        ? scope.ServiceProvider.GetRequiredService<TFlow>()
+                        : flowFactory();
+
+                    workflowSetter(flow, w);
+
+                    await flow.Run(p);
+                    return new Result<Unit>(Unit.Instance);
+                }
+                catch (SuspendInvocationException)
+                {
+                    return new Result<Unit>(Suspend.Invocation);
+                }
+                catch (FatalWorkflowException exception)
+                {
+                    exception.FlowId = w.FlowId;
+                    return new Result<Unit>(exception);
+                }
+                catch (Exception exception)
+                {
+                    return new Result<Unit>(FatalWorkflowException.CreateNonGeneric(w.FlowId, exception));
+                }
+            },
             settings: (options ?? FlowOptions.Default).MapToLocalSettings()
         );
     }
@@ -243,7 +259,7 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     /// <param name="param">Flow's parameter</param>
     /// <param name="initialState">Optional initial state with pre-filled messages and effects</param>
     /// <returns>A task which will complete when the flow has completed its execution</returns>
-    public Task Run(FlowInstance instanceId, TParam param, InitialState? initialState = null) 
+    public Task Run(FlowInstance instanceId, TParam param, InitialState? initialState = null)
         => _registration.Invoke(instanceId, param, initialState);
 
     /// <summary>
@@ -256,10 +272,10 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     /// <returns>A task which will complete when the flow has been persisted</returns>
     public Task<Scheduled> Schedule(FlowInstance instanceId, TParam param, InitialState? initialState = null)
         => _registration.Schedule(instanceId, param, initialState: initialState);
-    
+
     /// <summary>
     /// Schedule the flow for future execution.
-    /// Flow can be executed at any replica 
+    /// Flow can be executed at any replica
     /// </summary>
     /// <param name="instanceId">Instance id for the flow</param>
     /// <param name="param">Flow's parameter</param>
@@ -273,7 +289,7 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
 
     /// <summary>
     /// Schedule the flow for future execution.
-    /// Flow can be executed at any replica 
+    /// Flow can be executed at any replica
     /// </summary>
     /// <param name="instanceId">Instance id for the flow</param>
     /// <param name="param">Flow's parameter</param>
@@ -337,17 +353,44 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     where TParam : notnull
 {
     private readonly FuncRegistration<TParam, TResult> _registration;
-    
-    public Flows(string flowName, FlowsContainer flowsContainer, FlowOptions? options = null, Func<TFlow>? flowFactory = null) : base(flowsContainer, flowFactory)
+
+    public Flows(string flowName, FlowsContainer flowsContainer, FlowOptions? options = null, Func<TFlow>? flowFactory = null)
     {
-        var callChain = CreateMiddlewareCallChain<TParam, TResult>(
-            runFlow: (flow, param) => flow.Run(param)
-        );
-        
+        var serviceProvider = flowsContainer.ServiceProvider;
+        var workflowSetter = CreateWorkflowSetter();
+
         flowsContainer.EnsureNoExistingRegistration(flowName, typeof(TFlow));
         _registration = flowsContainer.FunctionRegistry.RegisterFunc<TParam, TResult>(
             flowName,
-            inner: (param, workflow) => callChain(param, workflow),
+            inner: async (p, w) =>
+            {
+                try
+                {
+                    await using var scope = serviceProvider.CreateAsyncScope();
+
+                    var flow = flowFactory == null
+                        ? scope.ServiceProvider.GetRequiredService<TFlow>()
+                        : flowFactory();
+
+                    workflowSetter(flow, w);
+
+                    var result = await flow.Run(p);
+                    return new Result<TResult>(result);
+                }
+                catch (SuspendInvocationException)
+                {
+                    return new Result<TResult>(Suspend.Invocation);
+                }
+                catch (FatalWorkflowException exception)
+                {
+                    exception.FlowId = w.FlowId;
+                    return new Result<TResult>(exception);
+                }
+                catch (Exception exception)
+                {
+                    return new Result<TResult>(FatalWorkflowException.CreateNonGeneric(w.FlowId, exception));
+                }
+            },
             (options ?? FlowOptions.Default).MapToLocalSettings()
         );
     }
@@ -357,7 +400,7 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     /// </summary>
     /// <param name="instanceId">Instance id for the flow</param>
     /// <returns>The flow's control panel or null if the flow does not exist</returns>
-    public Task<ControlPanel<TParam, TResult>?> ControlPanel(string instanceId) 
+    public Task<ControlPanel<TParam, TResult>?> ControlPanel(string instanceId)
         => _registration.ControlPanel(instanceId);
 
     public MessageWriter MessageWriter(FlowInstance instanceId)

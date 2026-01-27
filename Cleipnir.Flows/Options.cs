@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Cleipnir.Flows.CrossCutting;
+using System;
 using Cleipnir.ResilientFunctions.CoreRuntime;
 using Cleipnir.ResilientFunctions.CoreRuntime.Serialization;
 using Cleipnir.ResilientFunctions.Domain;
@@ -12,7 +9,7 @@ namespace Cleipnir.Flows;
 public class Options
 {
     public static Options Default { get; } = new();
-    
+
     internal Action<FrameworkException>? UnhandledExceptionHandler { get; }
     internal TimeSpan? RetentionPeriod { get; }
     internal TimeSpan? RetentionCleanUpFrequency { get; }
@@ -24,7 +21,6 @@ public class Options
     internal TimeSpan? MessagesPullFrequency { get; }
     internal TimeSpan? MessagesDefaultMaxWaitForCompletion { get; }
     internal ISerializer? Serializer { get; }
-    internal List<MiddlewareInstanceOrType> Middlewares  { get; } = new();
     internal UtcNow? UtcNow { get; }
 
     /// <summary>
@@ -43,16 +39,16 @@ public class Options
     /// <param name="serializer">Specify custom serializer. Default built-in json-serializer.</param>
     /// <param name="utcNow">Provide custom delegate for providing current utc datetime. Default: () => DateTime.UtcNow</param>
     public Options(
-        Action<FrameworkException>? unhandledExceptionHandler = null, 
+        Action<FrameworkException>? unhandledExceptionHandler = null,
         TimeSpan? retentionPeriod = null,
         TimeSpan? retentionCleanUpFrequency = null,
-        TimeSpan? leaseLength = null, 
+        TimeSpan? leaseLength = null,
         bool? enableWatchdogs = null,
         TimeSpan? watchdogCheckFrequency = null,
         TimeSpan? messagesPullFrequency = null,
         TimeSpan? messagesDefaultMaxWaitForCompletion = null,
-        TimeSpan? delayStartup = null, 
-        int? maxParallelRetryInvocations = null, 
+        TimeSpan? delayStartup = null,
+        int? maxParallelRetryInvocations = null,
         ISerializer? serializer = null,
         UtcNow? utcNow = null
     )
@@ -71,21 +67,9 @@ public class Options
         UtcNow = utcNow;
     }
 
-    public Options UseMiddleware<TMiddleware>() where TMiddleware : IMiddleware
-    {
-        Middlewares.Add(new MiddlewareType(typeof(TMiddleware)));
-        return this;
-    }
-
-    public Options UseMiddleware(IMiddleware middleware) 
-    {
-        Middlewares.Add(new MiddlewareInstance(middleware));
-        return this;
-    }
-
     public Options Merge(Options options)
     {
-        var merged = new Options(
+        return new Options(
             UnhandledExceptionHandler ?? options.UnhandledExceptionHandler,
             RetentionPeriod ?? options.RetentionPeriod,
             RetentionCleanUpFrequency ?? options.RetentionCleanUpFrequency,
@@ -98,15 +82,6 @@ public class Options
             MaxParallelRetryInvocations ?? options.MaxParallelRetryInvocations,
             Serializer ?? options.Serializer
         );
-        
-        if (Middlewares.Any())
-            foreach (var middleware in Middlewares)
-                merged.Middlewares.Add(middleware);
-        else
-            foreach (var middleware in options.Middlewares)
-                merged.Middlewares.Add(middleware);
-
-        return merged;
     }
 
     internal Settings MapToSettings()

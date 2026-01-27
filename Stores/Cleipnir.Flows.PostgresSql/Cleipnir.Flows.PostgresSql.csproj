@@ -45,7 +45,7 @@
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
     </PropertyGroup>
     <ItemGroup Label="SourceLink">
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="all" />
     </ItemGroup>
     
 </Project>

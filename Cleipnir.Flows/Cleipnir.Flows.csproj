@@ -6,7 +6,7 @@
 		<FileVersion>4.2.4.0</FileVersion>
 		<InformationalVersion>4.2.4.0</InformationalVersion>
 		<PackageVersion>4.2.4</PackageVersion>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageProjectUrl>https://github.com/stidsborg/Cleipnir.Flows</PackageProjectUrl>

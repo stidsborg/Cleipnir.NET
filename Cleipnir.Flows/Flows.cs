@@ -18,7 +18,7 @@ public interface IBaseFlows
 {
     public static abstract Type FlowType { get; }
 
-    public Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : notnull;
+    public Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : class;
 }
 
 public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
@@ -78,7 +78,7 @@ public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
         );
     }
 
-    public abstract Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : notnull;
+    public abstract Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : class;
 }
 
 public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
@@ -187,7 +187,7 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
     /// <typeparam name="T">Type of the message</typeparam>
     /// <returns>A task which will complete when the message has been persisted</returns>
-    public Task SendMessage<T>(FlowInstance flowInstance, T message, bool create = true, string? idempotencyKey = null) where T : notnull
+    public Task SendMessage<T>(FlowInstance flowInstance, T message, bool create = true, string? idempotencyKey = null) where T : class
         => _registration.SendMessage(flowInstance, message, create, idempotencyKey);
 
     /// <summary>
@@ -312,7 +312,7 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
     /// <typeparam name="T">Type of the message</typeparam>
     /// <returns>A task which will complete when the message has been persisted</returns>
-    public Task SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : notnull
+    public Task SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : class
         => _registration.SendMessage(flowInstance, message, idempotencyKey);
 
     /// <summary>
@@ -439,7 +439,7 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
     /// <typeparam name="T">Type of the message</typeparam>
     /// <returns>A task which will complete when the message has been persisted</returns>
-    public Task SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : notnull
+    public Task SendMessage<T>(FlowInstance flowInstance, T message, string? idempotencyKey = null) where T : class
         => _registration.SendMessage(flowInstance, message, idempotencyKey);
 
     /// <summary>

@@ -25,7 +25,7 @@ internal static class Program
 
         await bus.Publish(order);
         
-        var orderFlows = host.Services.GetRequiredService<OrderFlows>();
+        var orderFlows = host.Services.GetRequiredService<Flows<OrderFlow, Order>>();
         var controlPanel = await orderFlows.ControlPanel(order.OrderId);
         while (controlPanel is null || controlPanel.Status != Status.Succeeded)
         {
@@ -45,7 +45,7 @@ internal static class Program
                 
                 services.AddFlows(c => c
                     .UseInMemoryStore()
-                    .RegisterFlowsAutomatically()
+                    .RegisterFlows<OrderFlow, Order>()
                 );
                 
                 services.AddMassTransit(x =>

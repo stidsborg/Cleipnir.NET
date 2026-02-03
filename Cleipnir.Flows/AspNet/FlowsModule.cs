@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Cleipnir.Flows.SourceGeneration;
 using Cleipnir.ResilientFunctions.CoreRuntime;
 using Cleipnir.ResilientFunctions.CoreRuntime.Invocation;
 using Cleipnir.ResilientFunctions.Domain;
+using Cleipnir.ResilientFunctions.Helpers;
 using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -68,55 +66,48 @@ public class FlowsConfigurator
         return this;
     }
 
-    public FlowsConfigurator RegisterFlow<TFlow, TFlows>() where TFlow : BaseFlow where TFlows : BaseFlows<TFlow>
+    public FlowsConfigurator RegisterFlows<TFlow>() where TFlow : Flow
     {
-        var added = FlowsTypes.Add(typeof(TFlows));
+        var added = FlowsTypes.Add(typeof(Flows<TFlow>));
         if (!added) return this;
-        
+
         Services.AddScoped<TFlow>();
-        Services.AddTransient<TFlows>();
-        
+        Services.AddTransient(sp =>
+            new Flows<TFlow>(
+                flowName: typeof(TFlow).SimpleQualifiedName(),
+                sp.GetRequiredService<FlowsContainer>()
+            )
+        );
+
         return this;
     }
-    
-    public FlowsConfigurator RegisterFlow<TFlow, TFlows>(Func<IServiceProvider, TFlows> flowsFactory, Func<IServiceProvider, TFlow>? flowFactory = null) where TFlow : BaseFlow where TFlows : BaseFlows<TFlow>
+    public FlowsConfigurator RegisterFlows<TFlow, TParam>() where TFlow : Flow<TParam> where TParam : notnull
     {
-        var added = FlowsTypes.Add(typeof(TFlows));
+        var added = FlowsTypes.Add(typeof(Flows<TFlow, TParam>));
         if (!added) return this;
 
-        if (flowFactory != null)
-            Services.AddScoped(flowFactory);
-        else
-            Services.AddScoped<TFlow>();
-        
-        Services.AddTransient(flowsFactory);
+        Services.AddScoped<TFlow>();
+        Services.AddTransient(sp =>
+            new Flows<TFlow, TParam>(
+                flowName: typeof(TFlow).SimpleQualifiedName(),
+                sp.GetRequiredService<FlowsContainer>()
+            )
+        );
 
         return this;
     }
-
-    public FlowsConfigurator RegisterFlowsAutomatically(Assembly? rootAssembly = null)
+    public FlowsConfigurator RegisterFlows<TFlow, TParam, TResult>() where TFlow : Flow<TParam, TResult> where TParam : notnull
     {
-        bool IsSourceGeneratedFlowsType(Type type) 
-            => type.GetCustomAttribute<SourceGeneratedFlowsAttribute>() != null;
-        
-        rootAssembly ??= Assembly.GetCallingAssembly();
-        var sourceGeneratedFlowsTypes = rootAssembly
-            .GetReferencedAssemblies()
-            .Select(Assembly.Load)
-            .Concat(new[] { rootAssembly })
-            .SelectMany(a => a.GetTypes())
-            .Where(IsSourceGeneratedFlowsType);
+        var added = FlowsTypes.Add(typeof(Flows<TFlow, TParam, TResult>));
+        if (!added) return this;
 
-        foreach (var sourceGeneratedFlowsType in sourceGeneratedFlowsTypes)
-        {
-            var added = FlowsTypes.Add(sourceGeneratedFlowsType);
-            if (!added) continue;
-            
-            Services.AddTransient(sourceGeneratedFlowsType);
-            var flowType = sourceGeneratedFlowsType.BaseType?.GenericTypeArguments[0];
-            if (flowType != null)
-                Services.AddScoped(flowType);
-        }
+        Services.AddScoped<TFlow>();
+        Services.AddTransient(sp =>
+            new Flows<TFlow, TParam, TResult>(
+                flowName: typeof(TFlow).SimpleQualifiedName(),
+                sp.GetRequiredService<FlowsContainer>()
+            )
+        );
 
         return this;
     }

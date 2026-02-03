@@ -2,7 +2,6 @@
 
 namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.MessageDriven;
 
-[GenerateFlows]
 public class MessageDrivenOrderFlow(Bus bus) : Flow<Order>
 {
     public override async Task Run(Order order)

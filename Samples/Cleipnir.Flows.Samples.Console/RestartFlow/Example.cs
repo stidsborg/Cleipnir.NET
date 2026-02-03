@@ -16,7 +16,7 @@ public static class Example
             Options.Default
         );
 
-        var flows = new RestartFailedFlows(flowsContainer);
+        var flows = new Flows<RestartFailedFlow, string>(nameof(RestartFailedFlow), flowsContainer);
         var flowId = "MK-54321";
         try
         {

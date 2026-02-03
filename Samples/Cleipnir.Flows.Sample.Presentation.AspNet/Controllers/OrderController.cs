@@ -1,5 +1,6 @@
 using Cleipnir.Flows.Sample.MicrosoftOpen.Clients;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Flows;
+using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Rpc.Solution;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ILogger = Serilog.ILogger;
@@ -8,7 +9,7 @@ namespace Cleipnir.Flows.Sample.MicrosoftOpen.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class OrderController(Flows.Rpc.OrderFlows orderFlows) : ControllerBase
+public class OrderController(Flows<OrderFlow, Order> orderFlows) : ControllerBase
 {
     private readonly ILogger _logger = Log.Logger.ForContext<OrderController>();
 

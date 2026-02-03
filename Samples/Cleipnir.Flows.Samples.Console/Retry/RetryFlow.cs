@@ -2,7 +2,6 @@
 
 namespace Cleipnir.Flows.Sample.ConsoleApp.Retry;
 
-[GenerateFlows]
 public class RetryFlow : Flow
 {
     private readonly RetryPolicy _retryPolicy = RetryPolicy.CreateConstantDelay(interval: TimeSpan.FromSeconds(1), suspendThreshold: TimeSpan.Zero);

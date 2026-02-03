@@ -16,7 +16,7 @@ public static class Example
             Options.Default
         );
 
-        var flows = new AtMostOnceFlows(flowsContainer);
+        var flows = new Flows<AtMostOnceFlow, string>(nameof(AtMostOnceFlow), flowsContainer);
         var rocketId = "AZ-213";
         await flows.Run(rocketId, rocketId);
     }

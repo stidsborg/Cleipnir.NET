@@ -20,7 +20,7 @@ public static class Example
             Options.Default
         );
 
-        var transferFlows = new TransferFlows(flowsContainer);
+        var transferFlows = new Flows<TransferFlow, Transfer>(nameof(TransferFlow), flowsContainer);
         var transactionId = Guid.NewGuid();
         await transferFlows.Run(
             transactionId.ToString(), new Transfer(transactionId, "FROM_ACC123", "TO_ACC456", Amount: 100)

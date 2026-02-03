@@ -1,7 +1,12 @@
 using Cleipnir.Flows.AspNet;
 using Cleipnir.Flows.PostgresSql;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Clients;
+using Cleipnir.Flows.Sample.MicrosoftOpen.Flows;
+using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Batch;
+using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Invoice;
+using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.MessageDriven;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.MessageDriven.Other;
+using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Rpc.Solution;
 using Cleipnir.ResilientFunctions.PostgreSQL;
 using Serilog;
 
@@ -28,7 +33,11 @@ internal static class Program
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
             .WithOptions(new Options(leaseLength: TimeSpan.FromSeconds(5), messagesDefaultMaxWaitForCompletion: TimeSpan.MaxValue))
-            .RegisterFlowsAutomatically()
+            .RegisterFlows<OrderFlow, Order>()
+            .RegisterFlows<BatchOrderFlow, List<Order>>()
+            .RegisterFlows<SingleOrderFlow, Order, TransactionIdAndTrackAndTrace>()
+            .RegisterFlows<InvoiceFlow, CustomerNumber>()
+            .RegisterFlows<MessageDrivenOrderFlow, Order>()
         );
 
         builder.Services.AddInMemoryBus();

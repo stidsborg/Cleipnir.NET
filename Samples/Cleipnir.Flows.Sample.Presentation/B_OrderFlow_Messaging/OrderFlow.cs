@@ -1,6 +1,5 @@
 ﻿namespace Cleipnir.Flows.Sample.Presentation.B_OrderFlow_Messaging;
 
-[GenerateFlows]
 public class OrderFlow : Flow<Order>
 {
     /*

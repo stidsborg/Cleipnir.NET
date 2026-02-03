@@ -3,7 +3,7 @@ using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.RabbitMq.Console;
 
-public class OrderFlowConsumer(OrderFlows orderFlows) : 
+public class OrderFlowConsumer(Flows<OrderFlow, Order> orderFlows) : 
    IConsumer<FundsReserved>,
    IConsumer<ProductsShipped>,
    IConsumer<FundsCaptured>,

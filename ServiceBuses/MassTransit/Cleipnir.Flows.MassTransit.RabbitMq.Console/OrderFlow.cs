@@ -4,7 +4,6 @@ using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.RabbitMq.Console;
 
-[GenerateFlows]
 public class OrderFlow(IBus bus) : Flow<Order>
 {
     public override async Task Run(Order order)

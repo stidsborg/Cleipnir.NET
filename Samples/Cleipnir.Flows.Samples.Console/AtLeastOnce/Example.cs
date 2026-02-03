@@ -16,7 +16,7 @@ public static class Example
             Options.Default
         );
 
-        var flows = new AtLeastOnceFlows(flowsContainer);
+        var flows = new Flows<AtLeastOnceFlow, string, string>(nameof(AtLeastOnceFlow), flowsContainer);
         var hashCode = "¤SOME_#A$H";
         var solution = await flows.Run(hashCode, hashCode);
         System.Console.WriteLine("Solution was: " + solution);

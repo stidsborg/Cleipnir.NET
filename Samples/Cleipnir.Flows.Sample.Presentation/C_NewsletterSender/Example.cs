@@ -20,11 +20,11 @@ public static class Example
             c => c
                 .UseStore(store)
                 .WithOptions(new Options(unhandledExceptionHandler: Console.WriteLine))
-                .RegisterFlowsAutomatically()
+                .RegisterFlows<NewsletterFlow, MailAndRecipients>()
         );
 
         var sp = serviceCollection.BuildServiceProvider();
-        var flows = sp.GetRequiredService<NewsletterFlows>();
+        var flows = sp.GetRequiredService<Flows<NewsletterFlow, MailAndRecipients>>();
         
         await flows.Run(
             instanceId: "2023-10",

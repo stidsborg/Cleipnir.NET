@@ -1,3 +1,4 @@
+using Cleipnir.Flows.Sample.MicrosoftOpen.Flows;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Batch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,7 +6,7 @@ namespace Cleipnir.Flows.Sample.MicrosoftOpen.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class BatchOrderController(BatchOrderFlows batchOrderFlows) : ControllerBase
+public class BatchOrderController(Flows<BatchOrderFlow, List<Order>> batchOrderFlows) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult> Post(OrdersBatch ordersBatch)

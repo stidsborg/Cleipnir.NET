@@ -11,9 +11,9 @@ namespace Cleipnir.Flows.Sample.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly ILogger _logger = Log.Logger.ForContext<OrderController>();
-    private readonly OrderFlows _orderFlows;
+    private readonly Flows<OrderFlow, Order> _orderFlows;
 
-    public OrderController(OrderFlows orderFlows)
+    public OrderController(Flows<OrderFlow, Order> orderFlows)
     {
         _orderFlows = orderFlows;
     }

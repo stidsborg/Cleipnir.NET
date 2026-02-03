@@ -5,8 +5,7 @@ using MimeKit.Text;
 
 namespace Cleipnir.Flows.Sample.Presentation.C_NewsletterSender.Distributed;
 
-[GenerateFlows]
-public class NewsletterChildFlow(NewsletterParentFlows parentFlows, int child) : Flow<NewsletterChildWork>
+public class NewsletterChildFlow(Flows<NewsletterParentFlow, MailAndRecipients> parentFlows, int child) : Flow<NewsletterChildWork>
 {
     public override async Task Run(NewsletterChildWork work)
     {

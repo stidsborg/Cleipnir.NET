@@ -2,7 +2,6 @@ using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.Console;
 
-[GenerateFlows]
 public class SimpleFlow : Flow
 {
     public override async Task Run()
@@ -12,8 +11,8 @@ public class SimpleFlow : Flow
     }
 }
 
-public class SimpleFlowsHandler(SimpleFlows simpleFlows) : IConsumer<MyMessage>
+public class SimpleFlowsHandler(Flows<SimpleFlow> simpleFlows) : IConsumer<MyMessage>
 {
-    public Task Consume(ConsumeContext<MyMessage> context) 
+    public Task Consume(ConsumeContext<MyMessage> context)
         => simpleFlows.SendMessage(context.Message.Value, context.Message);
 }

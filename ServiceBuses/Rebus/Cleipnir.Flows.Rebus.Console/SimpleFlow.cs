@@ -2,7 +2,6 @@ using Rebus.Handlers;
 
 namespace Cleipnir.Flows.Rebus.Console;
 
-[GenerateFlows]
 public class SimpleFlow : Flow
 {
     public override async Task Run()
@@ -12,7 +11,7 @@ public class SimpleFlow : Flow
     }
 }
 
-public class SimpleFlowsHandler(SimpleFlows simpleFlows) : IHandleMessages<MyMessage>
+public class SimpleFlowsHandler(Flows<SimpleFlow> simpleFlows) : IHandleMessages<MyMessage>
 {
     public Task Handle(MyMessage msg) => simpleFlows.SendMessage(msg.Value, msg);
 }

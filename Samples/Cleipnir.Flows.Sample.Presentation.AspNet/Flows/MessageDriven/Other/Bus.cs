@@ -1,6 +1,6 @@
 ﻿namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.MessageDriven.Other;
 
-public class Bus(MessageDrivenOrderFlows flows)
+public class Bus(Flows<MessageDrivenOrderFlow, Order> flows)
 {
     private readonly List<Func<EventsAndCommands, Task>> _subscribers = new();
     private readonly object _lock = new();

@@ -13,16 +13,15 @@ public static class Example
         await store.Initialize();
         
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddTransient<RetryFlows>();
         serviceCollection.AddTransient<RetryFlow>();
-        
+
         var flowsContainer = new FlowsContainer(
             store,
             serviceCollection.BuildServiceProvider(),
             new Options(unhandledExceptionHandler: Console.WriteLine)
         );
 
-        var flows = new RetryFlows(flowsContainer);
+        var flows = new Flows<RetryFlow>(nameof(RetryFlow), flowsContainer);
         var flowId = "MK-54321";
         await flows.Schedule(flowId);
 

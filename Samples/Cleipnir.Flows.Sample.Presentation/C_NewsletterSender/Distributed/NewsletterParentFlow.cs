@@ -2,8 +2,7 @@ using Cleipnir.ResilientFunctions.Domain;
 
 namespace Cleipnir.Flows.Sample.Presentation.C_NewsletterSender.Distributed;
 
-[GenerateFlows]
-public class NewsletterParentFlow(NewsletterChildFlows childFlows) : Flow<MailAndRecipients>
+public class NewsletterParentFlow(Flows<NewsletterChildFlow, NewsletterChildWork> childFlows) : Flow<MailAndRecipients>
 {
     public override async Task Run(MailAndRecipients param)
     {

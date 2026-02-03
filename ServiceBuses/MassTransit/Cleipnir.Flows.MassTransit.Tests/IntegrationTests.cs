@@ -28,8 +28,9 @@ public class IntegrationTests
             {
                 services.AddFlows(c => c
                     .UseInMemoryStore()
-                    .RegisterFlow<MassTransitTestFlow, MassTransitTestFlows>()
                 );
+                services.AddScoped<MassTransitTestFlow>();
+                services.AddTransient<MassTransitTestFlows>();
                 
                 services.AddMassTransit(x =>
                 {

@@ -2,7 +2,7 @@ using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.MessageDriven.Other;
 
 namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.MessageDriven;
 
-public class ServiceBusHandler(MessageDrivenOrderFlows flows) : 
+public class ServiceBusHandler(Flows<MessageDrivenOrderFlow, Order> flows) : 
     IHandleMessages<FundsReserved>,
     IHandleMessages<FundsReservationFailed>,
     IHandleMessages<FundsCaptured>,

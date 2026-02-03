@@ -19,7 +19,7 @@ public static class Example
             new Options(unhandledExceptionHandler: Console.WriteLine)
         );
         
-        var flows = new NewsletterFlows(flowsContainer);
+        var flows = new Flows<NewsletterFlow, MailAndRecipients>(nameof(NewsletterFlow), flowsContainer);
         await flows.Run(
             "2023-10",
             new MailAndRecipients(

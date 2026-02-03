@@ -21,23 +21,23 @@ public class OptionsTests
                 messagesDefaultMaxWaitForCompletion: TimeSpan.FromDays(1),
                 watchdogCheckFrequency: TimeSpan.FromMilliseconds(100)
             ))
-            .RegisterFlow<OptionsTestWithOverriddenOptionsFlow, OptionsTestWithOverriddenOptionsFlows>(
-                flowsFactory: sp => new OptionsTestWithOverriddenOptionsFlows(
-                    sp.GetRequiredService<FlowsContainer>(),
-                    options: new FlowOptions(messagesDefaultMaxWaitForCompletion: TimeSpan.Zero)
-                )
-            )
-            .RegisterFlow<OptionsTestWithDefaultProvidedOptionsFlow, OptionsTestWithDefaultProvidedOptionsFlows>()
+            .RegisterFlows<OptionsTestWithDefaultProvidedOptionsFlow>()
         );
+        serviceCollection.AddScoped<OptionsTestWithOverriddenOptionsFlow>();
+        serviceCollection.AddTransient(sp => new Flows<OptionsTestWithOverriddenOptionsFlow>(
+            nameof(OptionsTestWithOverriddenOptionsFlow),
+            sp.GetRequiredService<FlowsContainer>(),
+            options: new FlowOptions(messagesDefaultMaxWaitForCompletion: TimeSpan.Zero)
+        ));
 
         var sp = serviceCollection.BuildServiceProvider();
-        var flowsWithOverridenOptions = sp.GetRequiredService<OptionsTestWithOverriddenOptionsFlows>();
+        var flowsWithOverridenOptions = sp.GetRequiredService<Flows<OptionsTestWithOverriddenOptionsFlow>>();
 
         await Should.ThrowAsync<InvocationSuspendedException>(
             () => flowsWithOverridenOptions.Run("Id")
         );
 
-        var flowsWithDefaultProvidedOptions = sp.GetRequiredService<OptionsTestWithDefaultProvidedOptionsFlows>();
+        var flowsWithDefaultProvidedOptions = sp.GetRequiredService<Flows<OptionsTestWithDefaultProvidedOptionsFlow>>();
         await flowsWithDefaultProvidedOptions.Schedule("Id");
 
         await Task.Delay(100);
@@ -67,16 +67,15 @@ public class OptionsTests
                 messagesDefaultMaxWaitForCompletion: TimeSpan.FromDays(1),
                 watchdogCheckFrequency: TimeSpan.FromMilliseconds(100)
             ))
-            .RegisterFlow<SimpleFlow, SimpleFlows>(
-                flowsFactory: sp => new SimpleFlows(
-                    sp.GetRequiredService<FlowsContainer>(),
-                    flowName: "SomeOtherFlowName"
-                )
-            )
         );
+        serviceCollection.AddScoped<SimpleFlow>();
+        serviceCollection.AddTransient(sp => new Flows<SimpleFlow>(
+            flowName: "SomeOtherFlowName",
+            sp.GetRequiredService<FlowsContainer>()
+        ));
 
         var sp = serviceCollection.BuildServiceProvider();
-        var flows = sp.GetRequiredService<SimpleFlows>();
+        var flows = sp.GetRequiredService<Flows<SimpleFlow>>();
         await flows.Run("Id");
         var sf = await store.GetFunction(StoredId.Create(storedType, "Id"));
         sf.ShouldNotBeNull();
@@ -84,7 +83,6 @@ public class OptionsTests
     }
 }
 
-[GenerateFlows]
 public class OptionsTestWithOverriddenOptionsFlow : Flow
 {
     public override async Task Run()
@@ -93,7 +91,6 @@ public class OptionsTestWithOverriddenOptionsFlow : Flow
     }
 }
 
-[GenerateFlows]
 public class OptionsTestWithDefaultProvidedOptionsFlow : Flow
 {
     public override async Task Run()
@@ -104,7 +101,6 @@ public class OptionsTestWithDefaultProvidedOptionsFlow : Flow
 
 public record StringWrapper(string Value);
 
-[GenerateFlows]
 public class SimpleFlow : Flow
 {
     public override Task Run() => Task.CompletedTask;

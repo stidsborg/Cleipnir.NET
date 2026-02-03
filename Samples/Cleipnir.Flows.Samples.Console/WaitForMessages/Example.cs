@@ -16,7 +16,7 @@ public static class Example
             Options.Default
         );
 
-        var flows = new WaitForMessagesFlows(flowsContainer);
+        var flows = new Flows<WaitForMessagesFlow, string>(nameof(WaitForMessagesFlow), flowsContainer);
         var orderId = "MK-54321";
         await flows.Schedule(orderId, orderId);
 

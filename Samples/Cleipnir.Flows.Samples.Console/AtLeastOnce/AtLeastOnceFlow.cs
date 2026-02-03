@@ -1,6 +1,5 @@
 ﻿namespace Cleipnir.Flows.Sample.ConsoleApp.AtLeastOnce;
 
-[GenerateFlows]
 public class AtLeastOnceFlow : Flow<string, string>
 {
     private readonly PuzzleSolverService _puzzleSolverService = new();

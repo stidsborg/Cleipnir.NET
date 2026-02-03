@@ -21,7 +21,7 @@ public static class Example
             Options.Default
         );
 
-        var orderFlows = new OrderFlows(flowsContainer);
+        var orderFlows = new Flows<OrderFlow, Order>(nameof(OrderFlow), flowsContainer);
         
         messageBroker.Subscribe(async msg =>
         {

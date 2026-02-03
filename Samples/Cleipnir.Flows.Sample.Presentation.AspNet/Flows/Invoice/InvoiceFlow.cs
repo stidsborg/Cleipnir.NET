@@ -2,7 +2,6 @@ using Cleipnir.ResilientFunctions.Helpers;
 
 namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Invoice;
 
-[GenerateFlows]
 public class InvoiceFlow(ILogger<InvoiceFlow> logger) : Flow<CustomerNumber>
 {
     public override async Task Run(CustomerNumber customerNumber)

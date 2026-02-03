@@ -16,8 +16,9 @@ public class IocDependecyTests
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddFlows(c => c
             .UseInMemoryStore()
-            .RegisterFlow<TestFlow, TestFlows>()
         );
+        serviceCollection.AddScoped<TestFlow>();
+        serviceCollection.AddTransient<TestFlows>();
         serviceCollection.AddTransient<TestDependency>();
         var serviceProvider = serviceCollection.BuildServiceProvider();
 

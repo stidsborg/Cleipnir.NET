@@ -2,7 +2,6 @@ using Cleipnir.Flows.Sample.MicrosoftOpen.Clients;
 
 namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Batch;
 
-[GenerateFlows]
 public class SingleOrderFlow(
     ILogger<SingleOrderFlow> logger,
     IPaymentProviderClient paymentProviderClient,

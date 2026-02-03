@@ -3,10 +3,9 @@ using Cleipnir.Flows.Sample.MicrosoftOpen.Clients;
 
 namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Batch;
 
-[GenerateFlows]
 public class BatchOrderFlow(
     ILogger<BatchOrderFlow> logger,
-    SingleOrderFlows orderFlows,
+    Flows<SingleOrderFlow, Order, TransactionIdAndTrackAndTrace> orderFlows,
     IPaymentProviderClient paymentProviderClient,
     IEmailClient emailClient,
     ILogisticsClient logisticsClient

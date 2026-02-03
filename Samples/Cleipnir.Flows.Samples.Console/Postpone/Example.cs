@@ -17,7 +17,7 @@ public static class Example
             Options.Default
         );
 
-        var flows = new PostponeFlows(flowsContainer);
+        var flows = new Flows<PostponeFlow, string>(nameof(PostponeFlow), flowsContainer);
         var orderId = "MK-54321";
         await flows.Schedule(orderId, orderId);
 

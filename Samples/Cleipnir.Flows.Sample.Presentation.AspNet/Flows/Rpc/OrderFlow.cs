@@ -6,7 +6,7 @@ using Polly.Retry;
 
 namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Rpc;
 
-[GenerateFlows]
+//[GenerateFlows]
 public class OrderFlow(
     IPaymentProviderClient paymentProviderClient,
     IEmailClient emailClient,

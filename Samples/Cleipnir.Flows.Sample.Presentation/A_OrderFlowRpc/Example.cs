@@ -18,7 +18,7 @@ public static class Example
             Options.Default
         );
 
-        var orderFlows = new OrderFlows(flowsContainer);
+        var orderFlows = new Flows<OrderFlow, Order>(nameof(OrderFlow), flowsContainer);
         await orderFlows.Run(
             "MK-54321",
             new Order("MK-54321", CustomerId: Guid.NewGuid(), ProductIds: new [] { Guid.NewGuid(), Guid.NewGuid() }, TotalPrice: 120M)

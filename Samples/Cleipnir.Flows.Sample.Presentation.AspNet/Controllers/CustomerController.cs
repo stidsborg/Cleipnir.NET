@@ -5,7 +5,7 @@ namespace Cleipnir.Flows.Sample.MicrosoftOpen.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CustomerController(InvoiceFlows invoiceFlows) : ControllerBase
+public class CustomerController(Flows<InvoiceFlow, CustomerNumber> invoiceFlows) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult> Post(int customerNumber)

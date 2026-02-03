@@ -8,7 +8,7 @@ namespace Cleipnir.Flows.Sample.MicrosoftOpen.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class OrderMessageDrivenController(MessageDrivenOrderFlows orderFlows) : ControllerBase
+public class OrderMessageDrivenController(Flows<MessageDrivenOrderFlow, Order> orderFlows) : ControllerBase
 {
     private readonly ILogger _logger = Log.Logger.ForContext<OrderController>();
 

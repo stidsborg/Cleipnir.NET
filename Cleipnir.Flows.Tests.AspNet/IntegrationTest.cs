@@ -51,7 +51,7 @@ public class IntegrationTest
         var (webApplication, testFlows) = await StartWebserverLocalHost(
             bindings: serviceCollection => serviceCollection.AddTransient<TestFlow>(),
             startFlow: provider => provider
-                .GetRequiredService<TestFlows>()
+                .GetRequiredService<Flows<TestFlow, string, string>>()
                 .Run("someInstance", "someParameter"),
             hostUrl,
             functionStore
@@ -67,7 +67,7 @@ public class IntegrationTest
         Assert.AreEqual(Status.Succeeded, controlPanel.Status);
     }
 
-    private async Task<(WebApplication, TestFlows)> StartWebserverLocalHost(
+    private async Task<(WebApplication, Flows<TestFlow, string, string>)> StartWebserverLocalHost(
         Action<IServiceCollection> bindings,
         Func<IServiceProvider, Task> startFlow,
         string hostUrl, 
@@ -79,7 +79,7 @@ public class IntegrationTest
         bindings(builder.Services);
         builder.Services.AddFlows(c => c
             .UseStore(functionStore)
-            .RegisterFlowsAutomatically()
+            .RegisterFlows<TestFlow, string, string>()
         );
 
         var app = builder.Build();
@@ -108,6 +108,6 @@ public class IntegrationTest
             }
         }
 
-        return (app, app.Services.GetRequiredService<TestFlows>());
+        return (app, app.Services.GetRequiredService<Flows<TestFlow, string, string>>());
     }
 }

@@ -22,21 +22,19 @@ public static class Example
                     c => c
                         .UseStore(store)
                         .WithOptions(new Options(unhandledExceptionHandler: Console.WriteLine))
-                        .RegisterFlow<NewsletterChildFlow, NewsletterChildFlows>(
-                            flowsFactory: sp => 
-                                new NewsletterChildFlows(
-                                    sp.GetRequiredService<FlowsContainer>(),
-                                    options: new FlowOptions(maxParallelRetryInvocations: 1)
-                            ),
-                            flowFactory: sp => new NewsletterChildFlow(sp.GetRequiredService<NewsletterParentFlows>(), child)
-                        )
-                        .RegisterFlowsAutomatically()
+                        .RegisterFlows<NewsletterParentFlow, MailAndRecipients>()
                 );
+                serviceCollection.AddScoped(sp => new NewsletterChildFlow(sp.GetRequiredService<Flows<NewsletterParentFlow, MailAndRecipients>>(), child));
+                serviceCollection.AddTransient(sp => new Flows<NewsletterChildFlow, NewsletterChildWork>(
+                    nameof(NewsletterChildFlow),
+                    sp.GetRequiredService<FlowsContainer>(),
+                    options: new FlowOptions(maxParallelRetryInvocations: 1)
+                ));
 
                 var sp = serviceCollection.BuildServiceProvider();
-                var __ = sp.GetRequiredService<NewsletterChildFlows>();
-                
-                return sp.GetRequiredService<NewsletterParentFlows>();
+                var __ = sp.GetRequiredService<Flows<NewsletterChildFlow, NewsletterChildWork>>();
+
+                return sp.GetRequiredService<Flows<NewsletterParentFlow, MailAndRecipients>>();
             })
             .ToList();
         

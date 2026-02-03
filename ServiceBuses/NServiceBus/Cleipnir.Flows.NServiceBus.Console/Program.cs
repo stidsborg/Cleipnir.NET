@@ -36,7 +36,7 @@ internal static class Program
             {
                 services.AddFlows(c => c
                         .UseInMemoryStore()
-                        .RegisterFlowsAutomatically()
+                        .RegisterFlows<SimpleFlow>()
                 );
 
             }).UseNServiceBus(_ =>

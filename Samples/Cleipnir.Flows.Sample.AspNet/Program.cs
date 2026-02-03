@@ -1,6 +1,7 @@
 using Cleipnir.Flows.AspNet;
 using Cleipnir.Flows.PostgresSql;
 using Cleipnir.Flows.Sample.Clients;
+using Cleipnir.Flows.Sample.Flows;
 using Cleipnir.ResilientFunctions.PostgreSQL;
 using Serilog;
 
@@ -27,7 +28,7 @@ internal static class Program
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
             .WithOptions(new Options(leaseLength: TimeSpan.FromSeconds(5)))
-            .RegisterFlowsAutomatically()
+            .RegisterFlows<OrderFlow, Order>()
         );
         
         // Add services to the container.

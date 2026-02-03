@@ -50,8 +50,9 @@ public class IntegrationTests
                 
                 services.AddFlows(c => c
                     .UseInMemoryStore()
-                    .RegisterFlow<TestFlow, TestFlows>()
                 );
+                services.AddScoped<TestFlow>();
+                services.AddTransient<TestFlows>();
                 
             })
             .UseNServiceBus(_ =>

@@ -58,8 +58,9 @@ public class IntegrationTests
                 
                 services.AddFlows(c => c
                     .UseInMemoryStore()
-                    .RegisterFlow<RebusTestFlow, RebusTestFlows>()
                 );
+                services.AddScoped<RebusTestFlow>();
+                services.AddTransient<RebusTestFlows>();
                 
                 services.AddRebus(configure =>
                     configure.Transport(t => 

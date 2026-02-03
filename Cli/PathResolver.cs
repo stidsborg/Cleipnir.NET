@@ -6,19 +6,19 @@ public static class PathResolver
     {
         return operatingSystem switch
         {
-            OperatingSystem.Windows => 
+            OperatingSystem.Windows =>
                 new RepoAndDotnetPaths(
                     RepoPath: "../",
                     DotnetPath: @"C:\Program Files\dotnet\dotnet.exe"
                 ),
-            OperatingSystem.Linux => 
+            OperatingSystem.Linux =>
                 new RepoAndDotnetPaths(
-                    RepoPath: $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/Repos/Cleipnir.Flows",
+                    RepoPath: "../",
                     DotnetPath: "/usr/bin/dotnet"
                 ),
-            OperatingSystem.MacOs => 
+            OperatingSystem.MacOs =>
                 new RepoAndDotnetPaths(
-                    RepoPath: $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/Repos/Cleipnir.Flows",
+                    RepoPath: "../",
                     DotnetPath: "/usr/local/share/dotnet/dotnet"
                 ),
             _ => throw new ArgumentOutOfRangeException(nameof(operatingSystem), operatingSystem, null)

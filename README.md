@@ -12,7 +12,7 @@
 
 # Cleipnir.NET / Cleipnir Flows
 **Cleipnir.NET** is a powerful **durable execution** framework for .NET — ensuring your code always completes correctly, even after **crashes** or **restarts**.
-* 💡**Crash-safe execution** - plain C# code automatically resumes after failures or redeployments. 
+* 💡**Crash-safe execution** - plain C# code automatically resumes safely after failures or redeployments. 
 * ⏸️ **Wait for external events** - directly inside your code (without taking up resources)
 * ⏰ **Suspend execution** - for seconds, minutes, or weeks — and continue seamlessly.
 * ☁️ **Cloud-agnostic** - runs anywhere, only needs a database.
@@ -51,7 +51,6 @@ await Delay(TimeSpan.FromMinutes(5));
 ## Examples
 ### Message-brokered ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/MessageDriven/MessageDrivenOrderFlow.cs)):
 ```csharp
-[GenerateFlows]
 public class OrderFlow(IBus bus) : Flow<Order>
 {
     public override async Task Run(Order order)
@@ -78,7 +77,6 @@ public class OrderFlow(IBus bus) : Flow<Order>
 
 ### RPC ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderFlow.cs)):
 ```csharp
-[GenerateFlows]
 public class OrderFlow(
     IPaymentProviderClient paymentProviderClient,
     IEmailClient emailClient,
@@ -127,14 +125,13 @@ Secondly, add the following to the setup in `Program.cs` ([source code](https://
 ```csharp
 builder.Services.AddFlows(c => c
   .UsePostgresStore(connectionString)  
-  .RegisterFlowsAutomatically()
+  .RegisterFlows<OrderFlow, Order>()
 );
 ```
 
 ### RPC Flows
 Finally, implement your flow ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderFlow.cs)):
 ```csharp
-[GenerateFlows]
 public class OrderFlow(
     IPaymentProviderClient paymentProviderClient,
     IEmailClient emailClient,
@@ -159,7 +156,6 @@ public class OrderFlow(
 ### Message-brokered Flows
 Or, if the flow is using a message-broker ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/MessageDriven/MessageDrivenOrderFlow.cs)):
 ```csharp
-[GenerateFlows]
 public class OrderFlow(IBus bus) : Flow<Order>
 {
     public override async Task Run(Order order)
@@ -184,12 +180,8 @@ The implemented flow can then be started using the corresponding source generate
 ```csharp
 [ApiController]
 [Route("[controller]")]
-public class OrderController : ControllerBase
+public class OrderController(Flows<OrderFlow, Order> orderFlows) : ControllerBase
 {
-    private readonly OrderFlows _orderFlows;
-
-    public OrderController(OrderFlows orderFlows) => _orderFlows = orderFlows;
-
     [HttpPost]
     public async Task Post(Order order) => await _orderFlows.Run(order.OrderId, order);
 }
@@ -297,14 +289,13 @@ Assert.AreEqual(transactionId, usedTransactionId);
 
 ### Avoid re-executing already completed code:
 ```csharp
-[GenerateFlows]
 public class AtLeastOnceFlow : Flow<string, string>
 {
   private readonly PuzzleSolverService _puzzleSolverService = new();
 
   public override async Task<string> Run(string hashCode)
   {
-    var solution = await Effect.Capture(
+    var solution = await Capture(
       id: "PuzzleSolution",
       work: () => _puzzleSolverService.SolveCryptographicPuzzle(hashCode)
     );
@@ -316,45 +307,19 @@ public class AtLeastOnceFlow : Flow<string, string>
 
 ### Ensure code is **executed at-most-once**:
 ```csharp
-[GenerateFlows]
 public class AtMostOnceFlow : Flow<string>
 {
     private readonly RocketSender _rocketSender = new();
     
     public override async Task Run(string rocketId)
     {
-        await Effect.Capture(
+        await Capture(
             id: "FireRocket",
             _rocketSender.FireRocket,
             ResiliencyLevel.AtMostOnce
         );
     }
 }
-```
-
-### Wait for 2 external messages before continuing flow ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/main/Samples/Cleipnir.Flows.Samples.Console/WaitForMessages/WaitForMessagesFlow.cs)):
-```csharp
-[GenerateFlows]
-public class WaitForMessagesFlow : Flow<string>
-{
-  public override async Task Run(string param)
-  {
-    await Messages
-      .OfTypes<FundsReserved, InventoryLocked>()
-      .Take(2)
-      .Completion(maxWait: TimeSpan.FromSeconds(30));
-
-    System.Console.WriteLine("Complete order-processing");
-  }
-}
-```
-When the max wait duration has passed the flow is automatically suspended in order to save resources.
-Thus, the flow can also be suspended immediately when all messages have not been received:
-```csharp
-await Messages
-  .OfTypes<FundsReserved, InventoryLocked>()
-  .Take(2)
-  .Completion();
 ```
 
 ### Emit a signal to a flow ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/a4ada3e734634278a81ca8fd25a39e058b628d50/Samples/Cleipnir.Flows.Samples.Console/WaitForMessages/Example.cs#L26)):
@@ -367,59 +332,21 @@ await messagesWriter.AppendMessage(new FundsReserved(orderId), idempotencyKey: n
 ```csharp
 var controlPanel = await flows.ControlPanel(flowId);
 controlPanel!.Param = "valid parameter";
-await controlPanel.ReInvoke();
+await controlPanel.Restart(clearFailures: true);
 ```
 
 ### Postpone a running flow (without taking in-memory resources) ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/b842b8bdb7367ddd86e8962017c520dadf3a27b2/Samples/Cleipnir.Flows.Samples.Console/Postpone/PostponeFlow.cs#L13)):
 ```csharp
-[GenerateFlows]
 public class PostponeFlow : Flow<string>
 {
   private readonly ExternalService _externalService = new();
 
   public override async Task Run(string orderId)
   {
-    if (await _externalService.IsOverloaded())
-      Postpone(delay: TimeSpan.FromMinutes(10));
+    if (await Capture(() => _externalService.IsOverloaded())) 
+        await Delay(@for: TimeSpan.FromMinutes(10));
         
     //execute rest of the flow
-  }
-}
-```
-
-### Add metrics middleware ([source code](https://github.com/stidsborg/Cleipnir.Flows/tree/main/Samples/Cleipnir.Flows.Samples.Console/Middleware)):
-```csharp
-public class MetricsMiddleware : IMiddleware
-{
-  private Action IncrementCompletedFlowsCounter { get; }
-  private Action IncrementFailedFlowsCounter { get; }
-  private Action IncrementRestartedFlowsCounter { get; }
-
-  public MetricsMiddleware(Action incrementCompletedFlowsCounter, Action incrementFailedFlowsCounter, Action incrementRestartedFlowsCounter)
-  {
-    IncrementCompletedFlowsCounter = incrementCompletedFlowsCounter;
-    IncrementFailedFlowsCounter = incrementFailedFlowsCounter;
-    IncrementRestartedFlowsCounter = incrementRestartedFlowsCounter;
-  }
-
-  public async Task<Result<TResult>> Run<TFlow, TParam, TResult>(
-    TParam param, 
-    Context context, 
-    Next<TFlow, TParam, TResult> next) where TParam : notnull
-  {
-    var started = workflow.Effect.TryGet<bool>(id: "Started", out _);
-    if (started)
-      IncrementRestartedFlowsCounter();
-    else
-      await workflow.Effect.Upsert("Started", true);
-        
-    var result = await next(param, workflow);
-    if (result.Outcome == Outcome.Fail)
-      IncrementFailedFlowsCounter();
-    else if (result.Outcome == Outcome.Succeed)
-      IncrementCompletedFlowsCounter();
-        
-    return result;
   }
 }
 ```
@@ -454,29 +381,17 @@ Thus, to rectify the situation we must ensure that the flow is *restarted* if it
 Consider the following Order-flow:
 
 ```csharp
-[GenerateFlows]
-public class OrderFlow : Flow<Order>
+public class OrderFlow(IPaymentProviderClient paymentProviderClient, IEmailClient emailClient, ILogisticsClient logisticsClient) : Flow<Order>
 {
-  private readonly IPaymentProviderClient _paymentProviderClient;
-  private readonly IEmailClient _emailClient;
-  private readonly ILogisticsClient _logisticsClient;
-
-  public OrderFlow(IPaymentProviderClient paymentProviderClient, IEmailClient emailClient, ILogisticsClient logisticsClient)
-  {
-    _paymentProviderClient = paymentProviderClient;
-    _emailClient = emailClient;
-    _logisticsClient = logisticsClient;
-  }
-
   public async Task ProcessOrder(Order order)
   {
     Log.Logger.ForContext<OrderFlow>().Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
     var transactionId = Guid.Empty;
-    await _paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
-    await _logisticsClient.ShipProducts(order.CustomerId, order.ProductIds);
-    await _paymentProviderClient.Capture(transactionId);
-    await _emailClient.SendOrderConfirmation(order.CustomerId, order.ProductIds);
+    await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
+    await logisticsClient.ShipProducts(order.CustomerId, order.ProductIds);
+    await paymentProviderClient.Capture(transactionId);
+    await emailClient.SendOrderConfirmation(order.CustomerId, order.ProductIds);
 
     Log.Logger.ForContext<OrderFlow>().Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' completed");
   }       
@@ -501,10 +416,10 @@ public async Task ProcessOrder(Order order)
 
   var transactionId = Effect.Capture("TransactionId", Guid.NewGuid);
   
-  await _paymentProviderClient.Reserve(transactionId, order.CustomerId, order.TotalPrice);
-  await _logisticsClient.ShipProducts(order.CustomerId, order.ProductIds);
-  await _paymentProviderClient.Capture(transactionId);
-  await _emailClient.SendOrderConfirmation(order.CustomerId, order.ProductIds);
+  await paymentProviderClient.Reserve(transactionId, order.CustomerId, order.TotalPrice);
+  await logisticsClient.ShipProducts(order.CustomerId, order.ProductIds);
+  await paymentProviderClient.Capture(transactionId);
+  await emailClient.SendOrderConfirmation(order.CustomerId, order.ProductIds);
 
   Log.Logger.ForContext<OrderProcessor>().Information($"Processing of order '{order.OrderId}' completed");
 }
@@ -527,10 +442,10 @@ public async Task ProcessOrder(Order order)
 {
   Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
-  var transactionId = await Effect.Capture("TransactionId", Guid.NewGuid);
+  var transactionId = await Capture("TransactionId", Guid.NewGuid);
   await _paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
 
-  await Effect.Capture(
+  await Capture(
     id: "ShipProducts",
     work: () => _logisticsClient.ShipProducts(order.CustomerId, order.ProductIds)
   );
@@ -555,7 +470,7 @@ For instance, assuming it is determined that the products where not shipped for 
 ```csharp
 var controlPanel = await flows.ControlPanel(order.OrderId);
 await controlPanel!.Effects.Remove("ShipProducts");
-await controlPanel.ReInvoke();
+await controlPanel.Restart();
 ```
 
 ### Message-based Solution

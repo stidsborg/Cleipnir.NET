@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Confluent.Kafka" Version="2.13.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-        <PackageReference Include="MSTest" Version="4.0.2" />
+        <PackageReference Include="MSTest" Version="4.1.0" />
     </ItemGroup>
 
     <ItemGroup>

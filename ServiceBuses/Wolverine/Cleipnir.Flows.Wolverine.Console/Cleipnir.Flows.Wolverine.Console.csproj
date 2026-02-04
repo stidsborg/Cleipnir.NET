@@ -10,7 +10,7 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
       <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
-      <PackageReference Include="WolverineFx" Version="5.12.1" />
+      <PackageReference Include="WolverineFx" Version="5.13.0" />
     </ItemGroup>
 
     <ItemGroup>

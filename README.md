@@ -463,7 +463,7 @@ Instead, it must be manually restarted by using the flow's associated control-pa
 
 **Control Panel:**
 
-Using the flow’s control panel both the parameter and scrapbook may be changed before the flow is retried.
+Using the flow's control panel the parameter may be changed before the flow is retried.
 
 For instance, assuming it is determined that the products where not shipped for a certain order, then the following code re-invokes the order with the state changed accordingly.
 
@@ -491,21 +491,23 @@ As a result the order-flow can be implemented as follows:
 ```csharp
 public async Task ProcessOrder(Order order)
 {
-  Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");  
+  Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
-  await _bus.Send(new ReserveFunds(order.OrderId, order.TotalPrice, Scrapbook.TransactionId, order.CustomerId));
+  var transactionId = await Capture(Guid.NewGuid);
+
+  await _bus.Send(new ReserveFunds(order.OrderId, order.TotalPrice, transactionId, order.CustomerId));
   await Message<FundsReserved>();
-            
+
   await _bus.Send(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds));
   await Message<ProductsShipped>();
-            
-  await _bus.Send(new CaptureFunds(order.OrderId, order.CustomerId, Scrapbook.TransactionId));
+
+  await _bus.Send(new CaptureFunds(order.OrderId, order.CustomerId, transactionId));
   await Message<FundsCaptured>();
 
   await _bus.Send(new SendOrderConfirmationEmail(order.OrderId, order.CustomerId));
   await Message<OrderConfirmationEmailSent>();
 
-  Log.Logger.ForContext<OrderProcessor>().Information($"Processing of order '{order.OrderId}' completed");      
+  Log.Logger.ForContext<OrderProcessor>().Information($"Processing of order '{order.OrderId}' completed");
 }
 ```
 There is a bit more going on in the example above compared to the previous RPC-example.

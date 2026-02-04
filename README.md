@@ -484,7 +484,7 @@ This has huge implications in how a flow must be implemented and as a result a s
 * inefficient - each time a message is received the entire state must be reestablished
 * inflexible
 
-Cleipnir Flows takes a novel approach by piggy-backing on the features described so far and using event-sourcing and reactive programming together to form a simple and extremely useful abstraction.
+Cleipnir Flows solves these challenges by building on the primitives described above, allowing message-driven flows to be expressed as simple sequential code.
 
 As a result the order-flow can be implemented as follows:
 

@@ -41,7 +41,7 @@ await Capture(() => httpClient.PostAsync("https://someurl.com", content), RetryP
 ### Messages
 Wait for retrieval of external message - without consuming resources: 
 ```csharp
-var fundsReserved = await Messages<FundsReserved>(timesOutIn: TimeSpan.FromMinutes(5));
+var fundsReserved = await Message<FundsReserved>(waitFor: TimeSpan.FromMinutes(5));
 ```
 ### Suspension 
 Suspends execution for a given duration (without taking up in-memory resources) - after which it will resume automatically from the same point.
@@ -85,14 +85,14 @@ public class OrderFlow(
 {
     public override async Task Run(Order order)
     {
-        var transactionId = Capture(() => Guid.NewGuid()); //generated transaction id is fixed after this statement
+        var transactionId = await Capture(Guid.NewGuid); //generated transaction id is fixed after this statement
 
         await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
-        var trackAndTrace = await Capture( 
-            () => paymentProviderClient.Capture(transactionId),
+        var trackAndTrace = await Capture(
+            () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds),
             ResiliencyLevel.AtMostOnce
         ); //external calls can also be captured - will never be called multiple times
-
+        await paymentProviderClient.Capture(transactionId);
         await emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds);
     }
 }
@@ -140,14 +140,14 @@ public class OrderFlow(
 {
     public override async Task Run(Order order)
     {
-        var transactionId = Capture(() => Guid.NewGuid);
+        var transactionId = await Capture(Guid.NewGuid);
 
         await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
         var trackAndTrace = await Capture(
-            () => paymentProviderClient.Capture(transactionId),
+            () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds),
             ResiliencyLevel.AtMostOnce
         );
-
+        await paymentProviderClient.Capture(transactionId);
         await emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds);
     }
 }
@@ -183,7 +183,7 @@ The implemented flow can then be started using the corresponding source generate
 public class OrderController(Flows<OrderFlow, Order> orderFlows) : ControllerBase
 {
     [HttpPost]
-    public async Task Post(Order order) => await _orderFlows.Run(order.OrderId, order);
+    public async Task Post(Order order) => await orderFlows.Run(order.OrderId, order);
 }
 ```
 
@@ -414,9 +414,9 @@ public async Task ProcessOrder(Order order)
 {
   Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
-  var transactionId = Effect.Capture("TransactionId", Guid.NewGuid);
-  
-  await paymentProviderClient.Reserve(transactionId, order.CustomerId, order.TotalPrice);
+  var transactionId = await Capture("TransactionId", Guid.NewGuid);
+
+  await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
   await logisticsClient.ShipProducts(order.CustomerId, order.ProductIds);
   await paymentProviderClient.Capture(transactionId);
   await emailClient.SendOrderConfirmation(order.CustomerId, order.ProductIds);
@@ -443,15 +443,15 @@ public async Task ProcessOrder(Order order)
   Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
   var transactionId = await Capture("TransactionId", Guid.NewGuid);
-  await _paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
+  await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
 
   await Capture(
     id: "ShipProducts",
-    work: () => _logisticsClient.ShipProducts(order.CustomerId, order.ProductIds)
+    work: () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds)
   );
-  
-  await _paymentProviderClient.Capture(transactionId);           
-  await _emailClient.SendOrderConfirmation(order.CustomerId, order.ProductIds);
+
+  await paymentProviderClient.Capture(transactionId);
+  await emailClient.SendOrderConfirmation(order.CustomerId, order.ProductIds);
 
   Log.Logger.ForContext<OrderProcessor>().Information($"Processing of order '{order.OrderId}' completed");
 }  
@@ -494,16 +494,16 @@ public async Task ProcessOrder(Order order)
   Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");  
 
   await _bus.Send(new ReserveFunds(order.OrderId, order.TotalPrice, Scrapbook.TransactionId, order.CustomerId));
-  await Messages.NextOfType<FundsReserved>();
+  await Message<FundsReserved>();
             
   await _bus.Send(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds));
-  await Messages.NextOfType<ProductsShipped>();
+  await Message<ProductsShipped>();
             
   await _bus.Send(new CaptureFunds(order.OrderId, order.CustomerId, Scrapbook.TransactionId));
-  await Messages.NextOfType<FundsCaptured>();
+  await Message<FundsCaptured>();
 
   await _bus.Send(new SendOrderConfirmationEmail(order.OrderId, order.CustomerId));
-  await Messages.NextOfType<OrderConfirmationEmailSent>();
+  await Message<OrderConfirmationEmailSent>();
 
   Log.Logger.ForContext<OrderProcessor>().Information($"Processing of order '{order.OrderId}' completed");      
 }

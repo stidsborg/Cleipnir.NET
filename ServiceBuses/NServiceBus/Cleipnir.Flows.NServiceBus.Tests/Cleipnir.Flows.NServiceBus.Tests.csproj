@@ -18,8 +18,8 @@
         <PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
         <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
         <PackageReference Include="Shouldly" Version="4.3.0" />
-        <PackageReference Include="NServiceBus" Version="9.2.8" />
-        <PackageReference Include="NServiceBus.Extensions.Hosting" Version="3.0.1" />
+        <PackageReference Include="NServiceBus" Version="10.0.1" />
+        <PackageReference Include="NServiceBus.Extensions.Hosting" Version="4.0.0" />
     </ItemGroup>
 
     <ItemGroup>

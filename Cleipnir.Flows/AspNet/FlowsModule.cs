@@ -32,18 +32,13 @@ public static class FlowsModule
     }
 }
 
-public class FlowsConfigurator
+public class FlowsConfigurator(IServiceCollection services)
 {
     internal bool EnableGracefulShutdown = false;
     internal readonly HashSet<Type> FlowsTypes = new();
 
     internal Func<IServiceProvider, Options>? OptionsFunc;
-    public IServiceCollection Services { get; }
-
-    public FlowsConfigurator(IServiceCollection services)
-    {
-        Services = services;
-    }
+    public IServiceCollection Services { get; } = services;
 
     public FlowsConfigurator UseInMemoryStore(InMemoryFunctionStore? store = null)
     {

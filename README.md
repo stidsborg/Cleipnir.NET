@@ -324,8 +324,8 @@ public class AtMostOnceFlow : Flow<string>
 
 ### Emit a signal to a flow ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/a4ada3e734634278a81ca8fd25a39e058b628d50/Samples/Cleipnir.Flows.Samples.Console/WaitForMessages/Example.cs#L26)):
 ```csharp
-var messagesWriter = flows.MessagesWriter(orderId);
-await messagesWriter.AppendMessage(new FundsReserved(orderId), idempotencyKey: nameof(FundsReserved));
+var messageWriter = flows.MessageWriter(orderId);
+await messageWriter.AppendMessage(new FundsReserved(orderId), idempotencyKey: nameof(FundsReserved));
 ```
 
 ### Restart a failed flow ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/b842b8bdb7367ddd86e8962017c520dadf3a27b2/Samples/Cleipnir.Flows.Samples.Console/RestartFlow/Example.cs#L32)):

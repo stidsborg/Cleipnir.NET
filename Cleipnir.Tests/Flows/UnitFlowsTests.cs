@@ -70,10 +70,9 @@ public class UnitFlowsTests
 
         await flows.Schedule("someInstanceId", "someParameter");
 
-        await Task.Delay(10);
         var controlPanel = await flows.ControlPanel(instanceId: "someInstanceId");
         controlPanel.ShouldNotBeNull();
-        controlPanel.Status.ShouldBe(Status.Suspended);
+        await controlPanel.BusyWaitUntil(c => c.Status == Status.Suspended);
 
         var eventSourceWriter = flows.MessageWriter("someInstanceId");
         await eventSourceWriter.AppendMessage(new IntWrapper(2));

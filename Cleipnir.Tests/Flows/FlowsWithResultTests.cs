@@ -109,10 +109,9 @@ public class FlowsWithResultTests
         var flows = new MessageDrivenFuncFlows(flowsContainer);
         await flows.Schedule("someInstanceId", "someParameter");
 
-        await Task.Delay(10);
         var controlPanel = await flows.ControlPanel(instanceId: "someInstanceId");
         controlPanel.ShouldNotBeNull();
-        controlPanel.Status.ShouldBe(Status.Suspended);
+        await controlPanel.BusyWaitUntil(c => c.Status == Status.Suspended);
 
         var messageWriter = flows.MessageWriter("someInstanceId");
         await messageWriter.AppendMessage(new IntWrapper(2));

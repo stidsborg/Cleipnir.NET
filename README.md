@@ -1,16 +1,16 @@
-[![.NET](https://github.com/stidsborg/Cleipnir.Flows/actions/workflows/dotnet.yml/badge.svg?no-cache)](https://github.com/stidsborg/Cleipnir.Flows/actions/workflows/dotnet.yml)
+[![.NET](https://github.com/stidsborg/Cleipnir.NET/actions/workflows/dotnet.yml/badge.svg?no-cache)](https://github.com/stidsborg/Cleipnir.NET/actions/workflows/dotnet.yml)
 [![NuGet](https://img.shields.io/nuget/dt/Cleipnir.Flows.svg)](https://www.nuget.org/packages/Cleipnir.Flows)
 [![NuGet](https://img.shields.io/nuget/vpre/Cleipnir.Flows.svg)](https://www.nuget.org/packages/Cleipnir.Flows)
 [![alt Join the conversation](https://img.shields.io/discord/1330489830299402360.svg?no-cache "Discord")](https://discord.gg/JzSzaNfus2)
 
 <p align="center">
-  <img src="https://github.com/stidsborg/Cleipnir.Flows/blob/main/Docs/cleipnir.png" alt="logo" />
+  <img src="https://github.com/stidsborg/Cleipnir.NET/blob/main/Docs/cleipnir.png" alt="logo" />
   <br>
   Surviving <strong>crashes/restarts</strong> in <strong>plain</strong> C#-code 
   <br>
 </p>
 
-# Cleipnir.NET / Cleipnir Flows
+# Cleipnir.NET
 **Cleipnir.NET** is a powerful **durable execution** framework for .NET — ensuring your code always completes correctly, even after **crashes** or **restarts**.
 * 💡**Crash-safe execution** - plain C# code automatically resumes safely after failures or redeployments. 
 * ⏸️ **Wait for external events** - directly inside your code (without taking up resources)
@@ -49,7 +49,7 @@ Suspends execution for a given duration (without taking up in-memory resources) 
 await Delay(TimeSpan.FromMinutes(5));
 ```
 ## Examples
-### Message-brokered ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/MessageDriven/MessageDrivenOrderFlow.cs)):
+### Message-brokered ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/main/Source/Flows/Ordering/MessageDriven/MessageDrivenOrderFlow.cs)):
 ```csharp
 public class OrderFlow(IBus bus) : Flow<Order>
 {
@@ -75,7 +75,7 @@ public class OrderFlow(IBus bus) : Flow<Order>
 }
 ```
 
-### RPC ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderFlow.cs)):
+### RPC ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderFlow.cs)):
 ```csharp
 public class OrderFlow(
     IPaymentProviderClient paymentProviderClient,
@@ -114,14 +114,14 @@ Both approaches have a unique set of challenges:
 * Job-scheduler - requires one to implement idempotent code by hand (in case of failure). Moreover, it cannot be integrated with message-brokers and does not support programmatically suspending a job in the middle of its execution.
 
 ## Getting Started
-To get started simply perform the following three steps in an ASP.NET or generic-hosted service ([sample repo](https://github.com/stidsborg/Cleipnir.Flows.Sample/)):
+To get started simply perform the following three steps in an ASP.NET or generic-hosted service ([sample repo](https://github.com/stidsborg/Cleipnir.NET.Sample/)):
 
 Firstly, install the Cleipnir.Flows nuget package (using either Postgres, SqlServer or MariaDB as persistence layer). I.e.
 ```powershell
 Install-Package Cleipnir.Flows.PostgresSql
 ```
 
-Secondly, add the following to the setup in `Program.cs` ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/d0c0584edf796db7202e61592b0cc2fd5f1ea909/Program.cs#L17)):
+Secondly, add the following to the setup in `Program.cs` ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/d0c0584edf796db7202e61592b0cc2fd5f1ea909/Program.cs#L17)):
 ```csharp
 builder.Services.AddFlows(c => c
   .UsePostgresStore(connectionString)  
@@ -130,7 +130,7 @@ builder.Services.AddFlows(c => c
 ```
 
 ### RPC Flows
-Finally, implement your flow ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderFlow.cs)):
+Finally, implement your flow ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderFlow.cs)):
 ```csharp
 public class OrderFlow(
     IPaymentProviderClient paymentProviderClient,
@@ -154,7 +154,7 @@ public class OrderFlow(
 ```
 
 ### Message-brokered Flows
-Or, if the flow is using a message-broker ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/MessageDriven/MessageDrivenOrderFlow.cs)):
+Or, if the flow is using a message-broker ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/main/Source/Flows/Ordering/MessageDriven/MessageDrivenOrderFlow.cs)):
 ```csharp
 public class OrderFlow(IBus bus) : Flow<Order>
 {
@@ -176,7 +176,7 @@ public class OrderFlow(IBus bus) : Flow<Order>
     }
 ```
 
-The implemented flow can then be started using the corresponding source generated Flows-type ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderController.cs)):
+The implemented flow can then be started using the corresponding source generated Flows-type ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderController.cs)):
 ```csharp
 [ApiController]
 [Route("[controller]")]
@@ -206,7 +206,7 @@ public class SimpleFlowsHandler(SimpleFlows simpleFlows) : IConsumer<MyMessage>
         => simpleFlows.SendMessage(context.Message.Value, context.Message);
 }
 ```
-[Source code](https://github.com/stidsborg/Cleipnir.Flows/blob/main/ServiceBuses/MassTransit/Cleipnir.Flows.MassTransit.Console/SimpleFlow.cs)
+[Source code](https://github.com/stidsborg/Cleipnir.NET/blob/main/ServiceBuses/MassTransit/Cleipnir.Flows.MassTransit.Console/SimpleFlow.cs)
 
 ### NServiceBus Handler
 ```csharp
@@ -216,7 +216,7 @@ public class SimpleFlowsHandler(SimpleFlows flows) : IHandleMessages<MyMessage>
         => flows.SendMessage(message.Value, message);
 }
 ```
-[Source code](https://github.com/stidsborg/Cleipnir.Flows/blob/main/ServiceBuses/NServiceBus/Cleipnir.Flows.NServiceBus.Console/SimpleFlow.cs)
+[Source code](https://github.com/stidsborg/Cleipnir.NET/blob/main/ServiceBuses/NServiceBus/Cleipnir.Flows.NServiceBus.Console/SimpleFlow.cs)
 
 ### Rebus Handler
 ```csharp
@@ -225,7 +225,7 @@ public class SimpleFlowsHandler(SimpleFlows simpleFlows) : IHandleMessages<MyMes
     public Task Handle(MyMessage msg) => simpleFlows.SendMessage(msg.Value, msg);
 }
 ```
-[Source code](https://github.com/stidsborg/Cleipnir.Flows/blob/main/ServiceBuses/Rebus/Cleipnir.Flows.Rebus.Console/SimpleFlow.cs)
+[Source code](https://github.com/stidsborg/Cleipnir.NET/blob/main/ServiceBuses/Rebus/Cleipnir.Flows.Rebus.Console/SimpleFlow.cs)
 
 ### Wolverine Handler
 ```csharp
@@ -235,14 +235,14 @@ public class SimpleFlowsHandler(SimpleFlows flows)
         => flows.SendMessage(myMessage.Value, myMessage);
 }
 ```
-[Source code](https://github.com/stidsborg/Cleipnir.Flows/blob/main/ServiceBuses/Wolverine/Cleipnir.Flows.Wolverine.Console/SimpleFlow.cs)
+[Source code](https://github.com/stidsborg/Cleipnir.NET/blob/main/ServiceBuses/Wolverine/Cleipnir.Flows.Wolverine.Console/SimpleFlow.cs)
 
 ### Publish multiple messages in batch
 
 ```csharp
 await flows.SendMessages(batchedMessages);
 ```
-[Source code](https://github.com/stidsborg/Cleipnir.Flows/blob/340c4b2830a047523b95ef443b39ea9f3ce9c97f/Cleipnir.Flows.Tests.AspNet/BulkPublishTests.cs#L37)
+[Source code](https://github.com/stidsborg/Cleipnir.NET/blob/340c4b2830a047523b95ef443b39ea9f3ce9c97f/Cleipnir.Flows.Tests.AspNet/BulkPublishTests.cs#L37)
 
 ### Kafka Handler
 
@@ -255,12 +255,12 @@ ConsumeMessages(
       messages.Select(msg => new BatchedMessage(msg.Instance, msg)).ToList()
 ));
 ```
-[Source code](https://github.com/stidsborg/Cleipnir.Flows/blob/76d65bf5ff66275b949bdd32c4797d45dbe7396a/ServiceBuses/Kafka/Cleipnir.Flows.Kafka.Tests/MessageTests.cs#L24)
+[Source code](https://github.com/stidsborg/Cleipnir.NET/blob/76d65bf5ff66275b949bdd32c4797d45dbe7396a/ServiceBuses/Kafka/Cleipnir.Flows.Kafka.Tests/MessageTests.cs#L24)
 
 ## More examples
 As an example is worth a thousand lines of documentation - various useful examples are presented in the following section:
 
-### Integration-test ([source code](https://github.com/stidsborg/Cleipnir.Flows.Sample/blob/48eceea40402590303d5a269aeec9912117c634c/Tests/Cleipnir.Flows.Sample.Tests/RpcOrderFlowTests.cs#L16)):
+### Integration-test ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/48eceea40402590303d5a269aeec9912117c634c/Tests/Cleipnir.Flows.Sample.Tests/RpcOrderFlowTests.cs#L16)):
 ```csharp
 var transactionId = Guid.NewGuid();
 var usedTransactionId = default(Guid?);
@@ -322,20 +322,20 @@ public class AtMostOnceFlow : Flow<string>
 }
 ```
 
-### Emit a signal to a flow ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/a4ada3e734634278a81ca8fd25a39e058b628d50/Samples/Cleipnir.Flows.Samples.Console/WaitForMessages/Example.cs#L26)):
+### Emit a signal to a flow ([source code](https://github.com/stidsborg/Cleipnir.NET/blob/a4ada3e734634278a81ca8fd25a39e058b628d50/Samples/Cleipnir.Flows.Samples.Console/WaitForMessages/Example.cs#L26)):
 ```csharp
 var messageWriter = flows.MessageWriter(orderId);
 await messageWriter.AppendMessage(new FundsReserved(orderId), idempotencyKey: nameof(FundsReserved));
 ```
 
-### Restart a failed flow ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/b842b8bdb7367ddd86e8962017c520dadf3a27b2/Samples/Cleipnir.Flows.Samples.Console/RestartFlow/Example.cs#L32)):
+### Restart a failed flow ([source code](https://github.com/stidsborg/Cleipnir.NET/blob/b842b8bdb7367ddd86e8962017c520dadf3a27b2/Samples/Cleipnir.Flows.Samples.Console/RestartFlow/Example.cs#L32)):
 ```csharp
 var controlPanel = await flows.ControlPanel(flowId);
 controlPanel!.Param = "valid parameter";
 await controlPanel.Restart(clearFailures: true);
 ```
 
-### Postpone a running flow (without taking in-memory resources) ([source code](https://github.com/stidsborg/Cleipnir.Flows/blob/b842b8bdb7367ddd86e8962017c520dadf3a27b2/Samples/Cleipnir.Flows.Samples.Console/Postpone/PostponeFlow.cs#L13)):
+### Postpone a running flow (without taking in-memory resources) ([source code](https://github.com/stidsborg/Cleipnir.NET/blob/b842b8bdb7367ddd86e8962017c520dadf3a27b2/Samples/Cleipnir.Flows.Samples.Console/Postpone/PostponeFlow.cs#L13)):
 ```csharp
 public class PostponeFlow : Flow<string>
 {
@@ -484,7 +484,7 @@ This has huge implications in how a flow must be implemented and as a result a s
 * inefficient - each time a message is received the entire state must be reestablished
 * inflexible
 
-Cleipnir Flows solves these challenges by building on the primitives described above, allowing message-driven flows to be expressed as simple sequential code.
+Cleipnir.NET solves these challenges by building on the primitives described above, allowing message-driven flows to be expressed as simple sequential code.
 
 As a result the order-flow can be implemented as follows:
 

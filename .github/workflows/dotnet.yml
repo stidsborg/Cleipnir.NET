@@ -25,4 +25,4 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Run Wolverine.Console
-      run: dotnet run --project ServiceBuses/Wolverine/Cleipnir.Wolverine.Console/Cleipnir.Flows.Console.csproj
+      run: dotnet run --project ServiceBuses/Wolverine/Cleipnir.Wolverine.Console/Cleipnir.Wolverine.Console.csproj

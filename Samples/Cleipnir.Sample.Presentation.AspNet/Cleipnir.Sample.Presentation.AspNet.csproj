@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Cleipnir.Flows.Sample.MicrosoftOpen</RootNamespace>
+    <RootNamespace>Cleipnir.Sample.MicrosoftOpen</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

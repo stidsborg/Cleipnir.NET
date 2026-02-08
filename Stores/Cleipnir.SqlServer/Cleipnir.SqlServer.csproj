@@ -20,6 +20,7 @@
         </Description>
         <RepositoryUrl>https://github.com/stidsborg/Cleipnir.NET</RepositoryUrl>
         <PackageTags>workflow-as-code, saga, process-manager, durable execution, resilient flows, resiliency, micro service, fault-tolerant, distributed systems, cloud independent</PackageTags>
+        <RootNamespace>Cleipnir.SqlServer</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

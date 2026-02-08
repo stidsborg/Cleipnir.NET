@@ -5,6 +5,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>Cleipnir.MassTransit.RabbitMq.Console</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

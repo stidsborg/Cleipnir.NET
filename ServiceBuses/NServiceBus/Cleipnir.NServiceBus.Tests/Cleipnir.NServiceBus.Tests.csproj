@@ -6,6 +6,7 @@
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <RootNamespace>Cleipnir.NServiceBus.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleipnir", "Cleipnir\Cleipn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleipnir.Sample.AspNet", "Samples\Cleipnir.Sample.AspNet\Cleipnir.Sample.AspNet.csproj", "{BC470FDE-839E-4B2C-8C56-8B20DEEF2CCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleipnir.Sample.ConsoleApp", "Samples\Cleipnir.Flows.Samples.Console\Cleipnir.Sample.ConsoleApp.csproj", "{DBF10B5A-8F03-43E9-B408-538766620DA6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cleipnir.Sample.ConsoleApp", "Samples\Cleipnir.Samples.Console\Cleipnir.Sample.ConsoleApp.csproj", "{DBF10B5A-8F03-43E9-B408-538766620DA6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{EAD350F1-8EF2-48AC-98EE-A5E739F15787}"
 EndProject

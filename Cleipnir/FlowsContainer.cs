@@ -26,7 +26,7 @@ public class FlowsContainer : IDisposable
         {
             var logger = serviceProvider.GetRequiredService<ILogger>();
             options = new Options(
-                    unhandledExceptionHandler: ex => logger.LogError(ex, "Unhandled exception in Cleipnir.NET"),
+                    unhandledExceptionHandler: ex => logger.LogError(ex, "Unhandled exception in Cleipnir"),
                     options.RetentionPeriod,
                     options.RetentionCleanUpFrequency,
                     options.LeaseLength,

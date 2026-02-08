@@ -87,13 +87,13 @@ public class OrderFlow(
     {
         var transactionId = await Capture(Guid.NewGuid); //generated transaction id is fixed after this statement
 
-        await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
+        await Capture(() => paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice));
         var trackAndTrace = await Capture(
             () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds),
             ResiliencyLevel.AtMostOnce
         ); //external calls can also be captured - will never be called multiple times
-        await paymentProviderClient.Capture(transactionId);
-        await emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds);
+        await Capture(() => paymentProviderClient.Capture(transactionId));
+        await Capture(() => emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds));
     }
 }
 ```
@@ -142,13 +142,13 @@ public class OrderFlow(
     {
         var transactionId = await Capture(Guid.NewGuid);
 
-        await paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice);
+        await Capture(() => paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice));
         var trackAndTrace = await Capture(
             () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds),
             ResiliencyLevel.AtMostOnce
         );
-        await paymentProviderClient.Capture(transactionId);
-        await emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds);
+        await Capture(() => paymentProviderClient.Capture(transactionId));
+        await Capture(() => emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds));
     }
 }
 ```

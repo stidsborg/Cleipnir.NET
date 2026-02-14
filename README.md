@@ -87,11 +87,11 @@ public class OrderFlow(
     {
         var transactionId = await Capture(Guid.NewGuid); //generated transaction id is fixed after this statement
 
-        await Capture(() => paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice));
+        await Capture(() => paymentProviderClient.Reserve(order.CustomerId, transactionId, order.TotalPrice)); 
         var trackAndTrace = await Capture(
             () => logisticsClient.ShipProducts(order.CustomerId, order.ProductIds),
             ResiliencyLevel.AtMostOnce
-        ); //external calls can also be captured - will never be called multiple times
+        ); //capture may also have at-most-once invocation semantics
         await Capture(() => paymentProviderClient.Capture(transactionId));
         await Capture(() => emailClient.SendOrderConfirmation(order.CustomerId, trackAndTrace, order.ProductIds));
     }

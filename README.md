@@ -260,6 +260,33 @@ ConsumeMessages(
 ## More examples
 As an example is worth a thousand lines of documentation - various useful examples are presented in the following section:
 
+### Sending customer emails ([source code](https://github.com/stidsborg/Cleipnir.NET/blob/main/Samples/Cleipnir.Sample.Presentation/C_NewsletterSender/Solution/NewsletterFlow.cs)):
+Consider a travel agency which wants to send a promotional email to its customers.
+
+Using `CaptureEach`, the runtime automatically tracks loop progress and removes effects from already completed iterations — keeping storage consumption constant regardless of the number of recipients:
+```csharp
+public class NewsletterFlow : Flow<MailAndRecipients>
+{
+    public override async Task Run(MailAndRecipients mailAndRecipients)
+    {
+        var (recipients, subject, content) = mailAndRecipients;
+        using var client = new SmtpClient();
+        await client.ConnectAsync("mail.smtpbucket.com", 8025);
+
+        await recipients.CaptureEach(async recipient =>
+        {
+            var message = new MimeMessage();
+            message.To.Add(new MailboxAddress(recipient.Name, recipient.Address));
+            message.From.Add(new MailboxAddress("The Travel Agency", "offers@thetravelagency.co.uk"));
+
+            message.Subject = subject;
+            message.Body = new TextPart(TextFormat.Html) { Text = content };
+            await client.SendAsync(message);
+        });
+    }
+}
+```
+
 ### Integration-test ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/48eceea40402590303d5a269aeec9912117c634c/Tests/Cleipnir.Flows.Sample.Tests/RpcOrderFlowTests.cs#L16)):
 ```csharp
 var transactionId = Guid.NewGuid();

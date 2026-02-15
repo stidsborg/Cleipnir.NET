@@ -1,3 +1,4 @@
+using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Helpers;
 using Cleipnir.ResilientFunctions.Messaging;
@@ -126,7 +127,7 @@ public class UnitFlowsTests
         controlPanel.Status.ShouldBe(Status.Failed);
 
         FailingUnitActionFlow.ShouldThrow = false;
-        await controlPanel.Restart();
+        await controlPanel.ScheduleRestart().Completion();
 
         await controlPanel.Refresh();
         controlPanel.Status.ShouldBe(Status.Succeeded);
@@ -176,7 +177,7 @@ public class UnitFlowsTests
         controlPanel.Status.ShouldBe(Status.Failed);
 
         FailingUnitFuncFlow.ShouldThrow = false;
-        await controlPanel.Restart();
+        await controlPanel.ScheduleRestart().Completion();
 
         await controlPanel.Refresh();
         controlPanel.Status.ShouldBe(Status.Succeeded);
@@ -226,7 +227,7 @@ public class UnitFlowsTests
         controlPanel.Status.ShouldBe(Status.Failed);
 
         FailingUnitParamlessFlow.ShouldThrow = false;
-        await controlPanel.Restart();
+        await controlPanel.ScheduleRestart().Completion();
 
         await controlPanel.Refresh();
         controlPanel.Status.ShouldBe(Status.Succeeded);

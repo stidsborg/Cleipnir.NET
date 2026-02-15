@@ -1,3 +1,4 @@
+using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Messaging;
 using Cleipnir.ResilientFunctions.Storage;
@@ -120,7 +121,7 @@ public class ParamlessFlowsTests
         controlPanel.Status.ShouldBe(Status.Failed);
 
         FailingParamlessFlow.ShouldThrow = false;
-        await controlPanel.Restart();
+        await controlPanel.ScheduleRestart().Completion();
 
         await controlPanel.Refresh();
         controlPanel.Status.ShouldBe(Status.Succeeded);

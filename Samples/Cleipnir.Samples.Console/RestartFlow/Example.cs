@@ -1,4 +1,5 @@
-﻿using Cleipnir.ResilientFunctions.Storage;
+﻿using Cleipnir.ResilientFunctions;
+using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cleipnir.Flows.Sample.ConsoleApp.RestartFlow;
@@ -29,6 +30,6 @@ public static class Example
         
         var controlPanel = await flows.ControlPanel(flowId);
         controlPanel!.Param = "valid parameter";
-        await controlPanel.Restart();
+        await controlPanel.ScheduleRestart().Completion();
     }
 }

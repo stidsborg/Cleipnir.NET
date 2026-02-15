@@ -1,6 +1,7 @@
 using Cleipnir.Flows.Sample.MicrosoftOpen.Clients;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Flows;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Flows.Rpc.Solution;
+using Cleipnir.ResilientFunctions;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using ILogger = Serilog.ILogger;
@@ -36,7 +37,7 @@ public class OrderController(Flows<OrderFlow, Order> orderFlows) : ControllerBas
         else
             await controlPanel.Effects.SetSucceeded(shipProductsEffectId, new TrackAndTrace(trackAndTraceNumber));
 
-        await controlPanel.Restart();
+        await controlPanel.ScheduleRestart().Completion();
         return Ok();
     }
     

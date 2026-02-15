@@ -1,3 +1,4 @@
+using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Helpers;
 using Cleipnir.ResilientFunctions.Storage;
@@ -166,7 +167,7 @@ public class FlowsWithResultTests
         controlPanel.Status.ShouldBe(Status.Failed);
 
         FailingFuncFlow.ShouldThrow = false;
-        await controlPanel.Restart();
+        await controlPanel.ScheduleRestart().Completion();
 
         await controlPanel.Refresh();
         controlPanel.Status.ShouldBe(Status.Succeeded);

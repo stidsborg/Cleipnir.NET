@@ -17,7 +17,7 @@ public class FunctionRegistrationTests
             inner: Task<string> (string param) => param.ToUpper().ToTask()
         );
 
-        var returned = await registration.Invoke("SomeInstance", "hallo world");
+        var returned = await registration.Run("SomeInstance", "hallo world");
         returned.ShouldBe("HALLO WORLD");
     }
     

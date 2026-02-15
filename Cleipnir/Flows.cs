@@ -114,7 +114,7 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <param name="initialState">Optional initial state with pre-filled messages and effects</param>
     /// <returns>A task which will complete when the flow has completed its execution</returns>
     public Task Run(FlowInstance instanceId, InitialState? initialState = null)
-        => _registration.Invoke(instanceId, initialState);
+        => _registration.Run(instanceId, initialState);
 
     /// <summary>
     /// Schedule the flow for immediate execution.
@@ -260,7 +260,7 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     /// <param name="initialState">Optional initial state with pre-filled messages and effects</param>
     /// <returns>A task which will complete when the flow has completed its execution</returns>
     public Task Run(FlowInstance instanceId, TParam param, InitialState? initialState = null)
-        => _registration.Invoke(instanceId, param, initialState);
+        => _registration.Run(instanceId, param, initialState);
 
     /// <summary>
     /// Schedule the flow for immediate execution.
@@ -414,7 +414,7 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
     /// <param name="initialState">Optional initial state with pre-filled messages and effects</param>
     /// <returns>A task which will complete when the flow has completed its execution containing its result</returns>
     public Task<TResult> Run(FlowInstance instanceId, TParam param, InitialState? initialState = null)
-        => _registration.Invoke(instanceId, param, initialState);
+        => _registration.Run(instanceId, param, initialState);
 
     /// <summary>
     /// Schedule the flow for immediate execution.

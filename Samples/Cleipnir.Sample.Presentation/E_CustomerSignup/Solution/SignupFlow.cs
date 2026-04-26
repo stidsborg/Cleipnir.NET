@@ -9,7 +9,7 @@ public class SignupFlow : Flow<string>
         
         for (var i = 0; i <= 3; i++)
         {
-            var emailVerified = await Message<EmailVerified>(maxWait: TimeSpan.FromDays(1));
+            var emailVerified = await Message<EmailVerified>(waitFor: TimeSpan.FromDays(1));
 
             if (emailVerified != null)
                 break;

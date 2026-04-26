@@ -15,8 +15,6 @@ namespace Cleipnir.Flows;
 public interface IBaseFlows
 {
     public static abstract Type FlowType { get; }
-
-    public Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : class;
 }
 
 public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
@@ -44,8 +42,6 @@ public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
         var setter = lambdaExpr.Compile();
         return setter;
     }
-
-    public abstract Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null) where T : class;
 }
 
 public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
@@ -142,17 +138,6 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     /// <param name="delay">Delay before the flow is executed</param>
     /// <returns>A task which will complete when the flow has been persisted</returns>
     public Task ScheduleIn(FlowInstance instanceId, TimeSpan delay) => _registration.ScheduleIn(instanceId.Value, delay);
-
-    /// <summary>
-    /// Route a message to the flow with registered correlation id
-    /// </summary>
-    /// <param name="message">Message to be delivered to the flow</param>
-    /// <param name="correlationId">Correlation id by which the flow is resolved</param>
-    /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
-    /// <typeparam name="T">Message type</typeparam>
-    /// <returns>A task which will complete when the message has been persisted</returns>
-    public override Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null)
-        => _registration.RouteMessage(message, correlationId, idempotencyKey);
 
     /// <summary>
     /// Schedule multiple flows at once
@@ -302,17 +287,6 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     ) => _registration.ScheduleIn(instanceId.Value, param, delay);
 
     /// <summary>
-    /// Route a message to the flow with registered correlation id
-    /// </summary>
-    /// <param name="message">Message to be delivered to the flow</param>
-    /// <param name="correlationId">Correlation id by which the flow is resolved</param>
-    /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
-    /// <typeparam name="T">Message type</typeparam>
-    /// <returns>A task which will complete when the message has been persisted</returns>
-    public override Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null)
-        => _registration.RouteMessage(message, correlationId, idempotencyKey);
-
-    /// <summary>
     /// Emit interrupt signal to flows
     /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension.
     /// </summary>
@@ -454,17 +428,6 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
         TParam param,
         TimeSpan delay
     ) => _registration.ScheduleIn(instanceId.Value, param, delay);
-
-    /// <summary>
-    /// Route a message to the flow with registered correlation id
-    /// </summary>
-    /// <param name="message">Message to be delivered to the flow</param>
-    /// <param name="correlationId">Correlation id by which the flow is resolved</param>
-    /// <param name="idempotencyKey">Optional idempotency key to de-duplicate messages</param>
-    /// <typeparam name="T">Message type</typeparam>
-    /// <returns>A task which will complete when the message has been persisted</returns>
-    public override Task RouteMessage<T>(T message, string correlationId, string? idempotencyKey = null)
-        => _registration.RouteMessage(message, correlationId, idempotencyKey);
 
     /// <summary>
     /// Emit interrupt signal to flows

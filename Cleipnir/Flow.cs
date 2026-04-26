@@ -8,7 +8,6 @@ namespace Cleipnir.Flows;
 public abstract class BaseFlow
 {
     public Workflow Workflow { get; init; } = null!;
-    public Utilities Utilities => Workflow.Utilities;
     public Effect Effect => Workflow.Effect;
 
     #region Capture explicit id with ResiliencyLevel
@@ -63,18 +62,18 @@ public abstract class BaseFlow
 
     #endregion
     
-    public Task<TMessage> Message<TMessage>(TimeSpan? maxWait = null) where TMessage : class
-        => Workflow.Message<TMessage>(maxWait);
-    public Task<TMessage?> Message<TMessage>(DateTime waitUntil, TimeSpan? maxWait = null) where TMessage : class
-        => Workflow.Message<TMessage>(waitUntil, maxWait);
-    public Task<TMessage?> Message<TMessage>(TimeSpan waitFor, TimeSpan? maxWait = null) where TMessage : class
-        => Workflow.Message<TMessage>(waitFor, maxWait);
-    public Task<TMessage> Message<TMessage>(Func<TMessage, bool> filter, TimeSpan? maxWait = null) where TMessage : class
-        => Workflow.Message(filter, maxWait);
-    public Task<TMessage?> Message<TMessage>(Func<TMessage, bool> filter, DateTime waitUntil, TimeSpan? maxWait = null) where TMessage : class
-        => Workflow.Message(filter, waitUntil, maxWait);
-    public Task<TMessage?> Message<TMessage>(Func<TMessage, bool> filter, TimeSpan waitFor, TimeSpan? maxWait = null) where TMessage : class
-        => Workflow.Message(filter, waitFor, maxWait);
+    public Task<TMessage> Message<TMessage>() where TMessage : class
+        => Workflow.Message<TMessage>();
+    public Task<TMessage?> Message<TMessage>(DateTime waitUntil) where TMessage : class
+        => Workflow.Message<TMessage>(waitUntil);
+    public Task<TMessage?> Message<TMessage>(TimeSpan waitFor) where TMessage : class
+        => Workflow.Message<TMessage>(waitFor);
+    public Task<TMessage> Message<TMessage>(Func<TMessage, bool> filter) where TMessage : class
+        => Workflow.Message(filter);
+    public Task<TMessage?> Message<TMessage>(Func<TMessage, bool> filter, DateTime waitUntil) where TMessage : class
+        => Workflow.Message(filter, waitUntil);
+    public Task<TMessage?> Message<TMessage>(Func<TMessage, bool> filter, TimeSpan waitFor) where TMessage : class
+        => Workflow.Message(filter, waitFor);
 
     public Task Delay(TimeSpan @for, bool suspend = true) => Workflow.Delay(@for, suspend);
     public Task Delay(DateTime until, bool suspend = true) => Workflow.Delay(until, suspend);

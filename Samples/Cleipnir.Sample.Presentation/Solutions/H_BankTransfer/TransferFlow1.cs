@@ -11,10 +11,6 @@ public sealed class TransferFlow1 : Flow<Transfer>
 
     public override async Task Run(Transfer transfer)
     {
-        await using var @lock = await Workflow.Synchronization.AcquireLock(
-            group: "BankTransfer", instance: transfer.FromAccount
-        );
-        
         var availableFunds = await BankCentralClient.GetAvailableFunds(transfer.FromAccount);
         if (availableFunds <= transfer.Amount)
             throw new InvalidOperationException("Insufficient funds on from account");

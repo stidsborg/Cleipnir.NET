@@ -1,6 +1,4 @@
-﻿using Cleipnir.ResilientFunctions.Domain;
-
-namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.BankTransfer;
+﻿namespace Cleipnir.Flows.Sample.MicrosoftOpen.Flows.BankTransfer;
 
 [GenerateFlows]
 public class TransferFlow : Flow<Transfer>
@@ -23,9 +21,6 @@ public class TransferFlow : Flow<Transfer>
             transfer.Amount
         );
     }
-
-    private Task<DistributedSemaphore.Lock> DistributedLock(string account)
-        => Workflow.Synchronization.AcquireLock("BankTransfer", instance: account);
 
     private readonly IBankCentralClient _bankCentralClient = new BankCentralClient();
 }

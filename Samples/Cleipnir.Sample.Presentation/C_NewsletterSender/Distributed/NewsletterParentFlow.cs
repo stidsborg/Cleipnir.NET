@@ -23,7 +23,7 @@ public class NewsletterParentFlow(Flows<NewsletterChildFlow, NewsletterChildWork
         await childFlows.BulkSchedule(bulkWork);
 
         for (var i = 0; i < 3; i++)
-            await Message<EmailsSent>(maxWait: TimeSpan.FromMinutes(30));
+            await Message<EmailsSent>(waitFor: TimeSpan.FromMinutes(30));
         
         Console.WriteLine("Finished NewsletterParentFlow");
     }

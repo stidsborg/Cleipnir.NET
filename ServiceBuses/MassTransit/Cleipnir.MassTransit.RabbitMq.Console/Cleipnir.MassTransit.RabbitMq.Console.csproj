@@ -9,10 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="MassTransit" Version="9.0.1" />
-      <PackageReference Include="MassTransit.RabbitMQ" Version="9.0.1" />
-      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
-      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.5" />
+      <PackageReference Include="MassTransit" Version="9.1.0" />
+      <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.7" />
     </ItemGroup>
 
     <ItemGroup>

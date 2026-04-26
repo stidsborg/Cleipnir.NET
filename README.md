@@ -41,7 +41,7 @@ await Capture(() => httpClient.PostAsync("https://someurl.com", content), RetryP
 ### Messages
 Wait for retrieval of external message - without consuming resources: 
 ```csharp
-var fundsReserved = await Message<FundsReserved>(waitFor: TimeSpan.FromMinutes(5));
+var fundsReserved = await Message<FundsReserved>();
 ```
 ### Suspension 
 Suspends execution for a given duration (without taking up in-memory resources) - after which it will resume automatically from the same point.
@@ -174,6 +174,7 @@ public class OrderFlow(IBus bus) : Flow<Order>
         await PublishSendOrderConfirmationEmail(order, trackAndTraceNumber);
         await Message<OrderConfirmationEmailSent>();
     }
+}
 ```
 
 The implemented flow can then be started using the corresponding source generated Flows-type ([source code](https://github.com/stidsborg/Cleipnir.NET.Sample/blob/main/Source/Flows/Ordering/Rpc/OrderController.cs)):
@@ -307,7 +308,7 @@ var testOrder = new Order("MK-54321", CustomerId: Guid.NewGuid(), ProductIds: [G
 await flows.Run(
   instanceId: testOrder.OrderId,
   testOrder,
-  new InitialState(Messages: [], Effects: [new InitialEffect("TransactionId", transactionId)])
+  new InitialState(Messages: [], Effects: [new InitialEffect(Id: 0, Value: transactionId, Alias: "TransactionId")])
 );
 
 Assert.AreEqual(transactionId, usedTransactionId);
@@ -359,7 +360,7 @@ await messageWriter.AppendMessage(new FundsReserved(orderId), idempotencyKey: na
 ```csharp
 var controlPanel = await flows.ControlPanel(flowId);
 controlPanel!.Param = "valid parameter";
-await controlPanel.Restart(clearFailures: true);
+await controlPanel.ScheduleRestart(clearFailures: true).Completion();
 ```
 
 ### Postpone a running flow (without taking in-memory resources) ([source code](https://github.com/stidsborg/Cleipnir.NET/blob/b842b8bdb7367ddd86e8962017c520dadf3a27b2/Samples/Cleipnir.Flows.Samples.Console/Postpone/PostponeFlow.cs#L13)):
@@ -410,7 +411,7 @@ Consider the following Order-flow:
 ```csharp
 public class OrderFlow(IPaymentProviderClient paymentProviderClient, IEmailClient emailClient, ILogisticsClient logisticsClient) : Flow<Order>
 {
-  public async Task ProcessOrder(Order order)
+  public override async Task Run(Order order)
   {
     Log.Logger.ForContext<OrderFlow>().Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
@@ -437,7 +438,7 @@ The payment provider requires the caller to provide a transaction-id. Thus, the 
 In Cleipnir this challenge is solved by wrapping non-determinism inside effects.
 
 ```csharp
-public async Task ProcessOrder(Order order)
+public override async Task Run(Order order)
 {
   Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
@@ -465,7 +466,7 @@ As a result the order-flow must fail if it is restarted and:
 This can again be accomplished by using effects:
 
 ```csharp
-public async Task ProcessOrder(Order order)
+public override async Task Run(Order order)
 {
   Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 
@@ -496,8 +497,8 @@ For instance, assuming it is determined that the products where not shipped for 
 
 ```csharp
 var controlPanel = await flows.ControlPanel(order.OrderId);
-await controlPanel!.Effects.Remove("ShipProducts");
-await controlPanel.Restart();
+await controlPanel!.Effects.Remove(shipProductsEffectId);
+await controlPanel.ScheduleRestart().Completion();
 ```
 
 ### Message-based Solution
@@ -516,7 +517,7 @@ Cleipnir.NET solves these challenges by building on the primitives described abo
 As a result the order-flow can be implemented as follows:
 
 ```csharp
-public async Task ProcessOrder(Order order)
+public override async Task Run(Order order)
 {
   Log.Logger.Information($"ORDER_PROCESSOR: Processing of order '{order.OrderId}' started");
 

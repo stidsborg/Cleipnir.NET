@@ -2,7 +2,6 @@
 
 namespace Cleipnir.Flows.Sample.Presentation.Solutions.D_LoanApplication;
 
-[GenerateFlows]
 public class LoanApplicationFlow1 : Flow<LoanApplication>
 {
     public override async Task Run(LoanApplication loanApplication)

@@ -4,7 +4,6 @@ using MimeKit.Text;
 
 namespace Cleipnir.Flows.Sample.Presentation.Solutions.C_NewsletterSender;
 
-[GenerateFlows]
 public class NewsletterFlow_Parallelized : Flow<MailAndRecipients>
 {
     public override async Task Run(MailAndRecipients mailAndRecipients)

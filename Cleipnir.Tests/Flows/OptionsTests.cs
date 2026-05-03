@@ -21,7 +21,7 @@ public class OptionsTests
                 messagesDefaultMaxWaitForCompletion: TimeSpan.FromDays(1),
                 watchdogCheckFrequency: TimeSpan.FromMilliseconds(100)
             ))
-            .RegisterFlows<OptionsTestWithDefaultProvidedOptionsFlow>()
+            .RegisterFlow<OptionsTestWithDefaultProvidedOptionsFlow>()
         );
         serviceCollection.AddScoped<OptionsTestWithOverriddenOptionsFlow>();
         serviceCollection.AddTransient(sp => new Flows<OptionsTestWithOverriddenOptionsFlow>(

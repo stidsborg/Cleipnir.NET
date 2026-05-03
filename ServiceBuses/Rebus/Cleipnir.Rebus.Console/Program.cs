@@ -37,7 +37,7 @@ internal static class Program
             {
                 services.AddFlows(c => c
                     .UseInMemoryStore()
-                    .RegisterFlows<SimpleFlow>()
+                    .RegisterFlow<SimpleFlow>()
                 );
 
                 services.AutoRegisterHandlersFromAssembly(typeof(Program).Assembly);

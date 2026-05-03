@@ -20,7 +20,7 @@ public static class Example
             c => c
                 .UseStore(store)
                 .WithOptions(new Options(unhandledExceptionHandler: Console.WriteLine))
-                .RegisterFlows<NewsletterFlow, MailAndRecipients>()
+                .RegisterFlow<NewsletterFlow, MailAndRecipients>()
         );
 
         var sp = serviceCollection.BuildServiceProvider();

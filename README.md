@@ -125,7 +125,7 @@ Secondly, add the following to the setup in `Program.cs` ([source code](https://
 ```csharp
 builder.Services.AddFlows(c => c
   .UsePostgresStore(connectionString)  
-  .RegisterFlows<OrderFlow, Order>()
+  .RegisterFlow<OrderFlow, Order>()
 );
 ```
 

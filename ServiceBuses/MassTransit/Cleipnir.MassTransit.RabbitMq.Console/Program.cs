@@ -45,7 +45,7 @@ internal static class Program
                 
                 services.AddFlows(c => c
                     .UseInMemoryStore()
-                    .RegisterFlows<OrderFlow, Order>()
+                    .RegisterFlow<OrderFlow, Order>()
                 );
                 
                 services.AddMassTransit(x =>

@@ -28,7 +28,7 @@ internal static class Program
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
             .WithOptions(new Options(leaseLength: TimeSpan.FromSeconds(5)))
-            .RegisterFlows<OrderFlow, Order>()
+            .RegisterFlow<OrderFlow, Order>()
         );
         
         // Add services to the container.

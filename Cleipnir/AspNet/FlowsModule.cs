@@ -61,7 +61,7 @@ public class FlowsConfigurator(IServiceCollection services)
         return this;
     }
 
-    public FlowsConfigurator RegisterFlows<TFlow>() where TFlow : Flow
+    public FlowsConfigurator RegisterFlow<TFlow>() where TFlow : Flow
     {
         var added = FlowsTypes.Add(typeof(Flows<TFlow>));
         if (!added) return this;
@@ -76,7 +76,7 @@ public class FlowsConfigurator(IServiceCollection services)
 
         return this;
     }
-    public FlowsConfigurator RegisterFlows<TFlow, TParam>() where TFlow : Flow<TParam> where TParam : notnull
+    public FlowsConfigurator RegisterFlow<TFlow, TParam>() where TFlow : Flow<TParam> where TParam : notnull
     {
         var added = FlowsTypes.Add(typeof(Flows<TFlow, TParam>));
         if (!added) return this;
@@ -91,7 +91,7 @@ public class FlowsConfigurator(IServiceCollection services)
 
         return this;
     }
-    public FlowsConfigurator RegisterFlows<TFlow, TParam, TResult>() where TFlow : Flow<TParam, TResult> where TParam : notnull
+    public FlowsConfigurator RegisterFlow<TFlow, TParam, TResult>() where TFlow : Flow<TParam, TResult> where TParam : notnull
     {
         var added = FlowsTypes.Add(typeof(Flows<TFlow, TParam, TResult>));
         if (!added) return this;

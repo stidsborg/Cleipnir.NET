@@ -33,11 +33,11 @@ internal static class Program
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
             .WithOptions(new Options(leaseLength: TimeSpan.FromSeconds(5), messagesDefaultMaxWaitForCompletion: TimeSpan.MaxValue))
-            .RegisterFlows<OrderFlow, Order>()
-            .RegisterFlows<BatchOrderFlow, List<Order>>()
-            .RegisterFlows<SingleOrderFlow, Order, TransactionIdAndTrackAndTrace>()
-            .RegisterFlows<InvoiceFlow, CustomerNumber>()
-            .RegisterFlows<MessageDrivenOrderFlow, Order>()
+            .RegisterFlow<OrderFlow, Order>()
+            .RegisterFlow<BatchOrderFlow, List<Order>>()
+            .RegisterFlow<SingleOrderFlow, Order, TransactionIdAndTrackAndTrace>()
+            .RegisterFlow<InvoiceFlow, CustomerNumber>()
+            .RegisterFlow<MessageDrivenOrderFlow, Order>()
         );
 
         builder.Services.AddInMemoryBus();

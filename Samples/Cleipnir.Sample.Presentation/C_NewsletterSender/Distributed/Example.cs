@@ -22,7 +22,7 @@ public static class Example
                     c => c
                         .UseStore(store)
                         .WithOptions(new Options(unhandledExceptionHandler: Console.WriteLine))
-                        .RegisterFlows<NewsletterParentFlow, MailAndRecipients>()
+                        .RegisterFlow<NewsletterParentFlow, MailAndRecipients>()
                 );
                 serviceCollection.AddScoped(sp => new NewsletterChildFlow(sp.GetRequiredService<Flows<NewsletterParentFlow, MailAndRecipients>>(), child));
                 serviceCollection.AddTransient(sp => new Flows<NewsletterChildFlow, NewsletterChildWork>(

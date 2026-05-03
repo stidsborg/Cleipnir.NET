@@ -79,7 +79,7 @@ public class IntegrationTest
         bindings(builder.Services);
         builder.Services.AddFlows(c => c
             .UseStore(functionStore)
-            .RegisterFlows<TestFlow, string, string>()
+            .RegisterFlow<TestFlow, string, string>()
         );
 
         var app = builder.Build();

@@ -30,7 +30,7 @@ public sealed class MessageTests
                 )
         );
 
-        await scheduled.Completion(maxWait: TimeSpan.FromSeconds(15));
+        await scheduled.Completion(timeout: TimeSpan.FromSeconds(15));
     }
 
     private class TestFlow : Flow

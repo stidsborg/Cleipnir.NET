@@ -74,7 +74,7 @@ public class FlowsWithResultTests
         var scheduled = await flows.Schedule("someInstanceId", "someParameter");
 
         // Flow uses non-suspending delay, so it completes directly
-        var result = await scheduled.Completion(maxWait: TimeSpan.FromSeconds(5));
+        var result = await scheduled.Completion(timeout: TimeSpan.FromSeconds(5));
         result.ShouldBe(1);
     }
 

@@ -11,7 +11,6 @@ public enum MostRecentAttempt
 
 public record CodeFromUser(string CustomerPhoneNumber, string Code, DateTime Timestamp);
 
-[GenerateFlows]
 public class SmsFlow : Flow<string, MostRecentAttempt>
 {
     public override async Task<MostRecentAttempt> Run(string customerPhoneNumber)

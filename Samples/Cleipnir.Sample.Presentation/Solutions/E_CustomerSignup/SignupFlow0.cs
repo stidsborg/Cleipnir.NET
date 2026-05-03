@@ -1,6 +1,5 @@
 namespace Cleipnir.Flows.Sample.Presentation.Solutions.E_CustomerSignup;
 
-[GenerateFlows]
 public class SignupFlow0 : Flow<string>
 {
     public override async Task Run(string customerEmail)

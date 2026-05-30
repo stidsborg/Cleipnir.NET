@@ -27,16 +27,17 @@ public class FlowsContainer : IDisposable
             var logger = serviceProvider.GetRequiredService<ILogger>();
             options = new Options(
                     unhandledExceptionHandler: ex => logger.LogError(ex, "Unhandled exception in Cleipnir"),
-                    options.RetentionPeriod,
-                    options.RetentionCleanUpFrequency,
-                    options.LeaseLength,
-                    options.EnableWatchdogs,
-                    options.WatchdogCheckFrequency,
-                    options.MessagesPullFrequency,
-                    options.MessagesDefaultMaxWaitForCompletion,
-                    options.DelayStartup,
-                    options.MaxParallelRetryInvocations,
-                    options.Serializer
+                    retentionPeriod: options.RetentionPeriod,
+                    retentionCleanUpFrequency: options.RetentionCleanUpFrequency,
+                    enableWatchdogs: options.EnableWatchdogs,
+                    watchdogCheckFrequency: options.WatchdogCheckFrequency,
+                    messagesPullFrequency: options.MessagesPullFrequency,
+                    messagesDefaultMaxWaitForCompletion: options.MessagesDefaultMaxWaitForCompletion,
+                    delayStartup: options.DelayStartup,
+                    maxParallelRetryInvocations: options.MaxParallelRetryInvocations,
+                    serializer: options.Serializer,
+                    utcNow: options.UtcNow,
+                    replicaHeartbeatFrequency: options.ReplicaHeartbeatFrequency
                 );
         }
 

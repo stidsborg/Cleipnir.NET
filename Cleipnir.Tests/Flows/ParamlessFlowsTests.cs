@@ -158,7 +158,7 @@ public class ParamlessFlowsTests
             "SomeInstanceId",
             new InitialState(
                 [new MessageAndIdempotencyKey(new StringMessage("InitialMessageValue"))],
-                [new InitialEffect(0, "InitialEffectValue")]
+                [new InitialEffect(0.ToEffectId(), "InitialEffectValue")]
             )
         );
 

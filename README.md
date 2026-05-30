@@ -308,7 +308,7 @@ var testOrder = new Order("MK-54321", CustomerId: Guid.NewGuid(), ProductIds: [G
 await flows.Run(
   instanceId: testOrder.OrderId,
   testOrder,
-  new InitialState(Messages: [], Effects: [new InitialEffect(Id: 0, Value: transactionId, Alias: "TransactionId")])
+  new InitialState(Messages: [], Effects: [new InitialEffect(Id: 0.ToEffectId(), Value: transactionId, Alias: "TransactionId")])
 );
 
 Assert.AreEqual(transactionId, usedTransactionId);

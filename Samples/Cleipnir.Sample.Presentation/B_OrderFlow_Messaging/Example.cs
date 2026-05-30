@@ -1,4 +1,5 @@
 ﻿using Cleipnir.ResilientFunctions.Storage;
+using Cleipnir.ResilientFunctions.Domain;
 
 namespace Cleipnir.Flows.Sample.Presentation.B_OrderFlow_Messaging;
 
@@ -18,7 +19,7 @@ public static class Example
         var flowsContainer = new FlowsContainer(
             new InMemoryFunctionStore(),
             serviceCollection.BuildServiceProvider(),
-            Options.Default
+            new Settings()
         );
 
         var orderFlows = new Flows<OrderFlow, Order>(nameof(OrderFlow), flowsContainer);

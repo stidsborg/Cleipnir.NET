@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cleipnir.ResilientFunctions;
+using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,30 +19,30 @@ public class FlowsContainer : IDisposable
 
     public FunctionsRegistry Functions => FunctionRegistry;
 
-    public FlowsContainer(IFunctionStore flowStore, IServiceProvider serviceProvider, Options options)
+    public FlowsContainer(IFunctionStore flowStore, IServiceProvider serviceProvider, Settings settings)
     {
         ServiceProvider = serviceProvider;
 
-        if (options.UnhandledExceptionHandler == null && serviceProvider.GetService<ILogger>() != null)
+        if (settings.UnhandledExceptionHandler == null && serviceProvider.GetService<ILogger>() != null)
         {
             var logger = serviceProvider.GetRequiredService<ILogger>();
-            options = new Options(
+            settings = new Settings(
                     unhandledExceptionHandler: ex => logger.LogError(ex, "Unhandled exception in Cleipnir"),
-                    retentionPeriod: options.RetentionPeriod,
-                    retentionCleanUpFrequency: options.RetentionCleanUpFrequency,
-                    enableWatchdogs: options.EnableWatchdogs,
-                    watchdogCheckFrequency: options.WatchdogCheckFrequency,
-                    messagesPullFrequency: options.MessagesPullFrequency,
-                    messagesDefaultMaxWaitForCompletion: options.MessagesDefaultMaxWaitForCompletion,
-                    delayStartup: options.DelayStartup,
-                    maxParallelRetryInvocations: options.MaxParallelRetryInvocations,
-                    serializer: options.Serializer,
-                    utcNow: options.UtcNow,
-                    replicaHeartbeatFrequency: options.ReplicaHeartbeatFrequency
+                    retentionPeriod: settings.RetentionPeriod,
+                    retentionCleanUpFrequency: settings.RetentionCleanUpFrequency,
+                    enableWatchdogs: settings.EnableWatchdogs,
+                    watchdogCheckFrequency: settings.WatchdogCheckFrequency,
+                    messagesPullFrequency: settings.MessagesPullFrequency,
+                    messagesDefaultMaxWaitForCompletion: settings.MessagesDefaultMaxWaitForCompletion,
+                    delayStartup: settings.DelayStartup,
+                    maxParallelRetryInvocations: settings.MaxParallelRetryInvocations,
+                    serializer: settings.Serializer,
+                    utcNow: settings.UtcNow,
+                    replicaHeartbeatFrequency: settings.ReplicaHeartbeatFrequency
                 );
         }
 
-        FunctionRegistry = new FunctionsRegistry(flowStore, options.MapToSettings());
+        FunctionRegistry = new FunctionsRegistry(flowStore, settings);
     }
 
     internal void EnsureNoExistingRegistration(string flowName, Type flowType)
@@ -77,10 +78,10 @@ public class FlowsContainer : IDisposable
     public static FlowsContainer Create(
         IServiceProvider? serviceProvider = null,
         IFunctionStore? functionStore = null,
-        Options? options = null)
+        Settings? settings = null)
         => new(
             functionStore ?? new InMemoryFunctionStore(),
             serviceProvider ?? new ServiceCollection().BuildServiceProvider(),
-            options ?? Options.Default
+            settings ?? new Settings()
         );
 }

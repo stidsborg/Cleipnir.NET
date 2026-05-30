@@ -21,7 +21,7 @@ public class UnitFlowsTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            Options.Default
+            new Settings()
         );
 
         var flows = new SimpleUnitFlows(flowsContainer);
@@ -64,7 +64,7 @@ public class UnitFlowsTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
+            new Settings(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new EventDrivenUnitFlows(flowsContainer);
@@ -111,7 +111,7 @@ public class UnitFlowsTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options()
+            new Settings()
         );
 
         var flows = new FallingUnitActionFlows(flowsContainer);
@@ -161,7 +161,7 @@ public class UnitFlowsTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options()
+            new Settings()
         );
 
         var flows = new FallingUnitFuncFlows(flowsContainer);
@@ -211,7 +211,7 @@ public class UnitFlowsTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options()
+            new Settings()
         );
 
         var flows = new FailingUnitParamlessFlows(flowsContainer);

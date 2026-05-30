@@ -25,13 +25,13 @@ public class FlowOptions
         MaxParallelRetryInvocations = maxParallelRetryInvocations;
     }
 
-    public FlowOptions Merge(Options options)
+    public FlowOptions Merge(Settings settings)
     {
         return new FlowOptions(
-            RetentionPeriod ?? options.RetentionPeriod,
-            EnableWatchdogs ?? options.EnableWatchdogs,
-            MessagesDefaultMaxWaitForCompletion ?? options.MessagesDefaultMaxWaitForCompletion,
-            MaxParallelRetryInvocations ?? options.MaxParallelRetryInvocations
+            RetentionPeriod ?? settings.RetentionPeriod,
+            EnableWatchdogs ?? settings.EnableWatchdogs,
+            MessagesDefaultMaxWaitForCompletion ?? settings.MessagesDefaultMaxWaitForCompletion,
+            MaxParallelRetryInvocations ?? settings.MaxParallelRetryInvocations
         );
     }
 

@@ -1,4 +1,5 @@
 using Cleipnir.Flows.AspNet;
+using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.Flows.PostgresSql;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Clients;
 using Cleipnir.Flows.Sample.MicrosoftOpen.Flows;
@@ -32,7 +33,7 @@ internal static class Program
         //await DatabaseHelper.RecreateDatabase(connectionString);
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
-            .WithOptions(new Options(replicaHeartbeatFrequency: TimeSpan.FromSeconds(5), messagesDefaultMaxWaitForCompletion: TimeSpan.MaxValue))
+            .WithOptions(new Settings(replicaHeartbeatFrequency: TimeSpan.FromSeconds(5), messagesDefaultMaxWaitForCompletion: TimeSpan.MaxValue))
             .RegisterFlow<OrderFlow, Order>()
             .RegisterFlow<BatchOrderFlow, List<Order>>()
             .RegisterFlow<SingleOrderFlow, Order, TransactionIdAndTrackAndTrace>()

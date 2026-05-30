@@ -1,5 +1,6 @@
 ﻿using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.Storage;
+using Cleipnir.ResilientFunctions.Domain;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cleipnir.Flows.Sample.ConsoleApp.RestartFlow;
@@ -14,7 +15,7 @@ public static class Example
         var flowsContainer = new FlowsContainer(
             new InMemoryFunctionStore(),
             serviceCollection.BuildServiceProvider(),
-            Options.Default
+            new Settings()
         );
 
         var flows = new Flows<RestartFailedFlow, string>(nameof(RestartFailedFlow), flowsContainer);

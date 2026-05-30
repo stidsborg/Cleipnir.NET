@@ -1,5 +1,6 @@
 ﻿using Cleipnir.ResilientFunctions.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using Cleipnir.ResilientFunctions.Domain;
 
 namespace Cleipnir.Flows.Sample.ConsoleApp.AtMostOnce;
 
@@ -13,7 +14,7 @@ public static class Example
         var flowsContainer = new FlowsContainer(
             new InMemoryFunctionStore(),
             serviceCollection.BuildServiceProvider(),
-            Options.Default
+            new Settings()
         );
 
         var flows = new Flows<AtMostOnceFlow, string>(nameof(AtMostOnceFlow), flowsContainer);

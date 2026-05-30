@@ -13,8 +13,7 @@ public static class Example
 
         var flowsContainer = new FlowsContainer(
             new InMemoryFunctionStore(),
-            serviceCollection.BuildServiceProvider(),
-            Options.Default
+            serviceCollection.BuildServiceProvider()
         );
 
         var flows = new Flows<PostponeFlow, string>(nameof(PostponeFlow), flowsContainer);

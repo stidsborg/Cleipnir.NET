@@ -17,7 +17,7 @@ public static class FlowsModule
         configure(configurator);
 
         if (configurator.OptionsFunc is null)
-            services.AddSingleton(new Options());
+            services.AddSingleton(new Settings());
         else
             services.AddSingleton(configurator.OptionsFunc);
         
@@ -37,7 +37,7 @@ public class FlowsConfigurator(IServiceCollection services)
     internal bool EnableGracefulShutdown = false;
     internal readonly HashSet<Type> FlowsTypes = new();
 
-    internal Func<IServiceProvider, Options>? OptionsFunc;
+    internal Func<IServiceProvider, Settings>? OptionsFunc;
     public IServiceCollection Services { get; } = services;
 
     public FlowsConfigurator UseInMemoryStore(InMemoryFunctionStore? store = null)
@@ -52,10 +52,10 @@ public class FlowsConfigurator(IServiceCollection services)
         return this;
     }
 
-    public FlowsConfigurator WithOptions(Options options)
-        => WithOptions(_ => options);
-    
-    public FlowsConfigurator WithOptions(Func<IServiceProvider, Options> optionsFunc)
+    public FlowsConfigurator WithOptions(Settings settings)
+        => WithOptions(_ => settings);
+
+    public FlowsConfigurator WithOptions(Func<IServiceProvider, Settings> optionsFunc)
     {
         OptionsFunc = optionsFunc;
         return this;

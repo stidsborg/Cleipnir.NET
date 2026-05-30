@@ -1,5 +1,6 @@
 ﻿using Cleipnir.Flows.AspNet;
 using Cleipnir.ResilientFunctions.PostgreSQL;
+using Cleipnir.ResilientFunctions.Domain;
 
 namespace Cleipnir.Flows.Sample.Presentation.C_NewsletterSender;
 
@@ -19,7 +20,7 @@ public static class Example
         serviceCollection.AddFlows(
             c => c
                 .UseStore(store)
-                .WithOptions(new Options(unhandledExceptionHandler: Console.WriteLine))
+                .WithOptions(new Settings(unhandledExceptionHandler: Console.WriteLine))
                 .RegisterFlow<NewsletterFlow, MailAndRecipients>()
         );
 

@@ -1,5 +1,6 @@
 ﻿using Cleipnir.ResilientFunctions.PostgreSQL;
 using Microsoft.Extensions.DependencyInjection;
+using Cleipnir.ResilientFunctions.Domain;
 
 namespace Cleipnir.Flows.Sample.ConsoleApp.Retry;
 
@@ -18,7 +19,7 @@ public static class Example
         var flowsContainer = new FlowsContainer(
             store,
             serviceCollection.BuildServiceProvider(),
-            new Options(unhandledExceptionHandler: Console.WriteLine)
+            new Settings(unhandledExceptionHandler: Console.WriteLine)
         );
 
         var flows = new Flows<RetryFlow>(nameof(RetryFlow), flowsContainer);

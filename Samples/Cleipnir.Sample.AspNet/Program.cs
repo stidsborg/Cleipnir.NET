@@ -1,4 +1,5 @@
 using Cleipnir.Flows.AspNet;
+using Cleipnir.ResilientFunctions.Domain;
 using Cleipnir.Flows.PostgresSql;
 using Cleipnir.Flows.Sample.Clients;
 using Cleipnir.Flows.Sample.Flows;
@@ -27,7 +28,7 @@ internal static class Program
         await DatabaseHelper.CreateDatabaseIfNotExists(connectionString); //use to create db initially or clean existing state in database
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
-            .WithOptions(new Options(replicaHeartbeatFrequency: TimeSpan.FromSeconds(5)))
+            .WithOptions(new Settings(replicaHeartbeatFrequency: TimeSpan.FromSeconds(5)))
             .RegisterFlow<OrderFlow, Order>()
         );
         

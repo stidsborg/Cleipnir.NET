@@ -1,4 +1,5 @@
 using Cleipnir.ResilientFunctions.Storage;
+using Cleipnir.ResilientFunctions.Domain;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
@@ -12,7 +13,7 @@ public class MultipleRegistrationTests
     {
         var serviceCollection = new ServiceCollection();
         var store = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(store, serviceCollection.BuildServiceProvider(), new Options());
+        var flowsContainer = new FlowsContainer(store, serviceCollection.BuildServiceProvider());
         _ = new TestFlowType1s(flowsContainer);
         _ = new TestFlowType1s(flowsContainer);
     }
@@ -22,7 +23,7 @@ public class MultipleRegistrationTests
     {
         var serviceCollection = new ServiceCollection();
         var store = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(store, serviceCollection.BuildServiceProvider(), new Options());
+        var flowsContainer = new FlowsContainer(store, serviceCollection.BuildServiceProvider());
         _ = new TestFlowType1s(flowsContainer);
         Should.Throw<InvalidOperationException>(() =>
             new TestFlowType2s(flowsContainer)

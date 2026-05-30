@@ -18,7 +18,7 @@ public class UtcNowTests
         var flowsContainer = new FlowsContainer(
             new InMemoryFunctionStore(),
             serviceCollection.BuildServiceProvider(),
-            new Options(utcNow: () => now, watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
+            new Settings(utcNow: () => now, watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new Flows<UtcNowTestFlow, DateTime>(nameof(UtcNowTestFlow), flowsContainer);

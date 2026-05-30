@@ -17,7 +17,7 @@ public class OptionsTests
 
         serviceCollection.AddFlows(c => c
             .UseInMemoryStore()
-            .WithOptions(new Options(
+            .WithOptions(new Settings(
                 messagesDefaultMaxWaitForCompletion: TimeSpan.FromDays(1),
                 watchdogCheckFrequency: TimeSpan.FromMilliseconds(100)
             ))
@@ -63,7 +63,7 @@ public class OptionsTests
         
         serviceCollection.AddFlows(c => c
             .UseInMemoryStore(store)
-            .WithOptions(new Options(
+            .WithOptions(new Settings(
                 messagesDefaultMaxWaitForCompletion: TimeSpan.FromDays(1),
                 watchdogCheckFrequency: TimeSpan.FromMilliseconds(100)
             ))

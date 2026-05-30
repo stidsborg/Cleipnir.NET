@@ -19,8 +19,7 @@ public class FlowsWithResultTests
         var flowStore = new InMemoryFunctionStore();
         var flowsContainer = new FlowsContainer(
             flowStore,
-            serviceCollection.BuildServiceProvider(),
-            Options.Default
+            serviceCollection.BuildServiceProvider()
         );
 
         var flows = new SimpleFuncFlows(flowsContainer);
@@ -67,7 +66,7 @@ public class FlowsWithResultTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
+            new Settings(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new SimpledDelayedFlows(flowsContainer);
@@ -104,7 +103,7 @@ public class FlowsWithResultTests
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
+            new Settings(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
         );
 
         var flows = new MessageDrivenFuncFlows(flowsContainer);
@@ -151,8 +150,7 @@ public class FlowsWithResultTests
         var flowStore = new InMemoryFunctionStore();
         var flowsContainer = new FlowsContainer(
             flowStore,
-            serviceCollection.BuildServiceProvider(),
-            new Options()
+            serviceCollection.BuildServiceProvider()
         );
 
         var flows = new FailingFuncFlows(flowsContainer);

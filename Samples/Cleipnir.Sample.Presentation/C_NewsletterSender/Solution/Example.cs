@@ -1,4 +1,5 @@
 ﻿using Cleipnir.ResilientFunctions.PostgreSQL;
+using Cleipnir.ResilientFunctions.Domain;
 
 namespace Cleipnir.Flows.Sample.Presentation.C_NewsletterSender.Solution;
 
@@ -16,7 +17,7 @@ public static class Example
         var flowsContainer = new FlowsContainer(
             flowStore,
             serviceCollection.BuildServiceProvider(),
-            new Options(unhandledExceptionHandler: Console.WriteLine)
+            new Settings(unhandledExceptionHandler: Console.WriteLine)
         );
         
         var flows = new Flows<NewsletterFlow, MailAndRecipients>(nameof(NewsletterFlow), flowsContainer);

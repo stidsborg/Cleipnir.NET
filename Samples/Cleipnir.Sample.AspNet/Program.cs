@@ -27,7 +27,7 @@ internal static class Program
         await DatabaseHelper.CreateDatabaseIfNotExists(connectionString); //use to create db initially or clean existing state in database
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
-            .WithOptions(new Options(leaseLength: TimeSpan.FromSeconds(5)))
+            .WithOptions(new Options(replicaHeartbeatFrequency: TimeSpan.FromSeconds(5)))
             .RegisterFlow<OrderFlow, Order>()
         );
         

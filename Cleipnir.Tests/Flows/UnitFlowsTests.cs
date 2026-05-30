@@ -265,7 +265,7 @@ public class UnitFlowsTests
             param: "SomeParam",
             new InitialState(
                 [new MessageAndIdempotencyKey(new StringMessage("InitialMessageValue"))],
-                [new InitialEffect(0, "InitialEffectValue")]
+                [new InitialEffect(0.ToEffectId(), "InitialEffectValue")]
             )
         );
 

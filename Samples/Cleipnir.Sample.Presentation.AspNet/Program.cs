@@ -32,7 +32,7 @@ internal static class Program
         //await DatabaseHelper.RecreateDatabase(connectionString);
         builder.Services.AddFlows(c => c
             .UsePostgresStore(connectionString)
-            .WithOptions(new Options(leaseLength: TimeSpan.FromSeconds(5), messagesDefaultMaxWaitForCompletion: TimeSpan.MaxValue))
+            .WithOptions(new Options(replicaHeartbeatFrequency: TimeSpan.FromSeconds(5), messagesDefaultMaxWaitForCompletion: TimeSpan.MaxValue))
             .RegisterFlow<OrderFlow, Order>()
             .RegisterFlow<BatchOrderFlow, List<Order>>()
             .RegisterFlow<SingleOrderFlow, Order, TransactionIdAndTrackAndTrace>()

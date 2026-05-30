@@ -19,8 +19,7 @@ public class FlowsWithResultTests
         var flowStore = new InMemoryFunctionStore();
         var flowsContainer = new FlowsContainer(
             flowStore,
-            serviceCollection.BuildServiceProvider(),
-            new Settings()
+            serviceCollection.BuildServiceProvider()
         );
 
         var flows = new SimpleFuncFlows(flowsContainer);
@@ -151,8 +150,7 @@ public class FlowsWithResultTests
         var flowStore = new InMemoryFunctionStore();
         var flowsContainer = new FlowsContainer(
             flowStore,
-            serviceCollection.BuildServiceProvider(),
-            new Settings()
+            serviceCollection.BuildServiceProvider()
         );
 
         var flows = new FailingFuncFlows(flowsContainer);

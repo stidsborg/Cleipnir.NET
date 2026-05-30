@@ -19,9 +19,10 @@ public class FlowsContainer : IDisposable
 
     public FunctionsRegistry Functions => FunctionRegistry;
 
-    public FlowsContainer(IFunctionStore flowStore, IServiceProvider serviceProvider, Settings settings)
+    public FlowsContainer(IFunctionStore flowStore, IServiceProvider serviceProvider, Settings? settings = null)
     {
         ServiceProvider = serviceProvider;
+        settings ??= new Settings();
 
         if (settings.UnhandledExceptionHandler == null && serviceProvider.GetService<ILogger>() != null)
         {

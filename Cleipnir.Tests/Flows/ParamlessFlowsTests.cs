@@ -19,8 +19,7 @@ public class ParamlessFlowsTests
         var flowStore = new InMemoryFunctionStore();
         var flowsContainer = new FlowsContainer(
             flowStore,
-            serviceCollection.BuildServiceProvider(),
-            new Settings()
+            serviceCollection.BuildServiceProvider()
         );
 
         var flows = new SimpleParamlessFlows(flowsContainer);
@@ -105,8 +104,7 @@ public class ParamlessFlowsTests
         var flowStore = new InMemoryFunctionStore();
         var flowsContainer = new FlowsContainer(
             flowStore,
-            serviceCollection.BuildServiceProvider(),
-            new Settings()
+            serviceCollection.BuildServiceProvider()
         );
 
         var flows = new FailingParamlessFlows(flowsContainer);

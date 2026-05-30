@@ -15,8 +15,7 @@ public static class Example
         
         var flowsContainer = new FlowsContainer(
             new InMemoryFunctionStore(),
-            serviceCollection.BuildServiceProvider(),
-            new Settings()
+            serviceCollection.BuildServiceProvider()
         );
 
         var orderFlows = new Flows<OrderFlow, Order>(nameof(OrderFlow), flowsContainer);

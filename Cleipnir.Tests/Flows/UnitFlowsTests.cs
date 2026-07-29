@@ -18,7 +18,7 @@ public class UnitFlowsTests
         serviceCollection.AddTransient<SimpleUnitFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );
@@ -60,7 +60,7 @@ public class UnitFlowsTests
         serviceCollection.AddTransient<EventDrivenUnitFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider(),
             new Settings(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
@@ -107,7 +107,7 @@ public class UnitFlowsTests
         serviceCollection.AddTransient<FailingUnitActionFlow>();
         
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );
@@ -156,7 +156,7 @@ public class UnitFlowsTests
         serviceCollection.AddTransient<FailingUnitFuncFlow>();
         
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );
@@ -205,7 +205,7 @@ public class UnitFlowsTests
         serviceCollection.AddTransient<FailingUnitParamlessFlow>();
         
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );
@@ -250,7 +250,7 @@ public class UnitFlowsTests
     [TestMethod]
     public async Task FlowCanBeCreatedWithInitialState()
     {
-        var flowsContainer = FlowsContainer.Create();
+        var flowsContainer = await FlowsContainer.CreateAndStart();
         var flow = new InitialStateFlow();
         var flows = flowsContainer.RegisterAnonymousFlow<InitialStateFlow, string>(
             flowFactory: () => flow

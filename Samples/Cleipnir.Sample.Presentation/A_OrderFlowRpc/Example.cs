@@ -13,7 +13,7 @@ public static class Example
         serviceCollection.AddTransient<ILogisticsClient, LogisticsClientStub>();
         serviceCollection.AddTransient<OrderFlow>();
         
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             new InMemoryFunctionStore(),
             serviceCollection.BuildServiceProvider()
         );

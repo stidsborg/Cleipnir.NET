@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Cleipnir.ResilientFunctions;
 using Cleipnir.ResilientFunctions.CoreRuntime.Invocation;
 using Cleipnir.ResilientFunctions.Domain;
-using Cleipnir.ResilientFunctions.Domain.Exceptions.Commands;
 using Cleipnir.ResilientFunctions.Helpers;
 using Cleipnir.ResilientFunctions.Messaging;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,8 +19,6 @@ public interface IBaseFlows
 public abstract class BaseFlows<TFlow> : IBaseFlows where TFlow : notnull
 {
     public static Type FlowType { get; } = typeof(TFlow);
-
-    public abstract Task Interrupt(IEnumerable<FlowInstance> instances);
 
     protected static Action<TFlow, Workflow> CreateWorkflowSetter()
     {
@@ -56,34 +53,19 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
         flowsContainer.EnsureNoExistingRegistration(flowName, typeof(TFlow));
         _registration = flowsContainer.FunctionRegistry.RegisterParamless(
             flowName,
+            // Registered via the public overload so the core wraps the body in its suspension race and
+            // converts thrown exceptions to failed results - the flow body itself must not catch.
             inner: async w =>
             {
-                try
-                {
-                    await using var scope = serviceProvider.CreateAsyncScope();
+                await using var scope = serviceProvider.CreateAsyncScope();
 
-                    var flow = flowFactory == null
-                        ? scope.ServiceProvider.GetRequiredService<TFlow>()
-                        : flowFactory();
+                var flow = flowFactory == null
+                    ? scope.ServiceProvider.GetRequiredService<TFlow>()
+                    : flowFactory();
 
-                    workflowSetter(flow, w);
+                workflowSetter(flow, w);
 
-                    await flow.Run();
-                    return new Result<Unit>(Unit.Instance);
-                }
-                catch (SuspendInvocationException)
-                {
-                    return new Result<Unit>(Suspend.Invocation);
-                }
-                catch (FatalWorkflowException exception)
-                {
-                    exception.FlowId = w.FlowId;
-                    return new Result<Unit>(exception);
-                }
-                catch (Exception exception)
-                {
-                    return new Result<Unit>(FatalWorkflowException.CreateNonGeneric(w.FlowId, exception));
-                }
+                await flow.Run();
             },
             (options ?? FlowOptions.Default).MapToLocalSettings()
         );
@@ -148,14 +130,6 @@ public class Flows<TFlow> : BaseFlows<TFlow> where TFlow : Flow
     public Task<BulkScheduled> BulkSchedule(IEnumerable<FlowInstance> instanceIds) => _registration.BulkSchedule(instanceIds);
 
     /// <summary>
-    /// Emit interrupt signal to flows
-    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension.
-    /// </summary>
-    /// <param name="instances">Instance ids for flows</param>
-    /// <returns>A task which will complete when the interrupt-signal has been persisted</returns>
-    public override Task Interrupt(IEnumerable<FlowInstance> instances) => _registration.Interrupt(instances);
-
-    /// <summary>
     /// Send the provided message to a flow
     /// </summary>
     /// <param name="flowInstance">Flow instance which will receive the message</param>
@@ -190,34 +164,19 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
         flowsContainer.EnsureNoExistingRegistration(flowName, typeof(TFlow));
         _registration = flowsContainer.FunctionRegistry.RegisterAction<TParam>(
             flowName,
+            // Registered via the public overload so the core wraps the body in its suspension race and
+            // converts thrown exceptions to failed results - the flow body itself must not catch.
             inner: async (p, w) =>
             {
-                try
-                {
-                    await using var scope = serviceProvider.CreateAsyncScope();
+                await using var scope = serviceProvider.CreateAsyncScope();
 
-                    var flow = flowFactory == null
-                        ? scope.ServiceProvider.GetRequiredService<TFlow>()
-                        : flowFactory();
+                var flow = flowFactory == null
+                    ? scope.ServiceProvider.GetRequiredService<TFlow>()
+                    : flowFactory();
 
-                    workflowSetter(flow, w);
+                workflowSetter(flow, w);
 
-                    await flow.Run(p);
-                    return new Result<Unit>(Unit.Instance);
-                }
-                catch (SuspendInvocationException)
-                {
-                    return new Result<Unit>(Suspend.Invocation);
-                }
-                catch (FatalWorkflowException exception)
-                {
-                    exception.FlowId = w.FlowId;
-                    return new Result<Unit>(exception);
-                }
-                catch (Exception exception)
-                {
-                    return new Result<Unit>(FatalWorkflowException.CreateNonGeneric(w.FlowId, exception));
-                }
+                await flow.Run(p);
             },
             settings: (options ?? FlowOptions.Default).MapToLocalSettings()
         );
@@ -287,14 +246,6 @@ public class Flows<TFlow, TParam> : BaseFlows<TFlow>
     ) => _registration.ScheduleIn(instanceId.Value, param, delay);
 
     /// <summary>
-    /// Emit interrupt signal to flows
-    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension.
-    /// </summary>
-    /// <param name="instances">Instance ids for flows</param>
-    /// <returns>A task which will complete when the interrupt-signal has been persisted</returns>
-    public override Task Interrupt(IEnumerable<FlowInstance> instances) => _registration.Interrupt(instances);
-
-    /// <summary>
     /// Send the provided message to a flow
     /// </summary>
     /// <param name="flowInstance">Flow instance which will receive the message</param>
@@ -336,34 +287,19 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
         flowsContainer.EnsureNoExistingRegistration(flowName, typeof(TFlow));
         _registration = flowsContainer.FunctionRegistry.RegisterFunc<TParam, TResult>(
             flowName,
+            // Registered via the public overload so the core wraps the body in its suspension race and
+            // converts thrown exceptions to failed results - the flow body itself must not catch.
             inner: async (p, w) =>
             {
-                try
-                {
-                    await using var scope = serviceProvider.CreateAsyncScope();
+                await using var scope = serviceProvider.CreateAsyncScope();
 
-                    var flow = flowFactory == null
-                        ? scope.ServiceProvider.GetRequiredService<TFlow>()
-                        : flowFactory();
+                var flow = flowFactory == null
+                    ? scope.ServiceProvider.GetRequiredService<TFlow>()
+                    : flowFactory();
 
-                    workflowSetter(flow, w);
+                workflowSetter(flow, w);
 
-                    var result = await flow.Run(p);
-                    return new Result<TResult>(result);
-                }
-                catch (SuspendInvocationException)
-                {
-                    return new Result<TResult>(Suspend.Invocation);
-                }
-                catch (FatalWorkflowException exception)
-                {
-                    exception.FlowId = w.FlowId;
-                    return new Result<TResult>(exception);
-                }
-                catch (Exception exception)
-                {
-                    return new Result<TResult>(FatalWorkflowException.CreateNonGeneric(w.FlowId, exception));
-                }
+                return await flow.Run(p);
             },
             (options ?? FlowOptions.Default).MapToLocalSettings()
         );
@@ -428,14 +364,6 @@ public class Flows<TFlow, TParam, TResult> : BaseFlows<TFlow>
         TParam param,
         TimeSpan delay
     ) => _registration.ScheduleIn(instanceId.Value, param, delay);
-
-    /// <summary>
-    /// Emit interrupt signal to flows
-    /// Execution of suspended flows will be resumed. Already executing flows will be restarted on suspension.
-    /// </summary>
-    /// <param name="instances">Instance ids for flows</param>
-    /// <returns>A task which will complete when the interrupt-signal has been persisted</returns>
-    public override Task Interrupt(IEnumerable<FlowInstance> instances) => _registration.Interrupt(instances);
 
     /// <summary>
     /// Send the provided message to a flow

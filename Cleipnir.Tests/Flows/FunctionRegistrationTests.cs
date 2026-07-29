@@ -11,7 +11,7 @@ public class FunctionRegistrationTests
     [TestMethod]
     public async Task FunctionCanBeRegisteredAndInvoked()
     {
-        using var container = FlowsContainer.Create();
+        using var container = await FlowsContainer.CreateAndStart();
         var registration = container.Functions.RegisterFunc(
             "TestFlow",
             inner: Task<string> (string param) => param.ToUpper().ToTask()
@@ -24,7 +24,7 @@ public class FunctionRegistrationTests
     [TestMethod]
     public async Task FlowCanBeCreatedWithInitialState()
     {
-        var flowsContainer = FlowsContainer.Create();
+        var flowsContainer = await FlowsContainer.CreateAndStart();
         var flow = new InitialStateFlow();
         var flows = flowsContainer.RegisterAnonymousFlow<InitialStateFlow, string, string>(
             flowFactory: () => flow

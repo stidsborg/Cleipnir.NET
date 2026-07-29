@@ -20,8 +20,16 @@ public static class FlowsModule
             services.AddSingleton(new Settings());
         else
             services.AddSingleton(configurator.OptionsFunc);
-        
-        services.AddSingleton<FlowsContainer>();
+
+        services.AddSingleton<FlowsContainer>(sp =>
+            {
+                var store = sp.GetRequiredService<IFunctionStore>();
+                var settings = configurator.OptionsFunc?.Invoke(sp) ?? sp.GetService<Settings>();
+                // Resolved once during host start-up; blocking here mirrors the old constructor, which
+                // initialized the replica watchdog synchronously.
+                return FlowsContainer.CreateAndStart(store, sp, settings).GetAwaiter().GetResult();
+            }
+        );
         services.AddTransient<Workflow>(_ => CurrentFlow.Workflow ?? throw new InvalidOperationException("Workflow is not present outside Flow"));
         services.AddTransient<Effect>(_ => CurrentFlow.Workflow?.Effect ?? throw new InvalidOperationException("Effect is not present outside Flow"));
         

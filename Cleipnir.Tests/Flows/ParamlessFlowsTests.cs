@@ -17,7 +17,7 @@ public class ParamlessFlowsTests
         serviceCollection.AddTransient<SimpleParamlessFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );
@@ -56,7 +56,7 @@ public class ParamlessFlowsTests
         serviceCollection.AddTransient<EventDrivenParamlessFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider(),
             new Settings(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
@@ -102,7 +102,7 @@ public class ParamlessFlowsTests
         serviceCollection.AddTransient<FailingParamlessFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );
@@ -146,7 +146,7 @@ public class ParamlessFlowsTests
     [TestMethod]
     public async Task FlowCanBeCreatedWithInitialState()
     {
-        var flowsContainer = FlowsContainer.Create();
+        var flowsContainer = await FlowsContainer.CreateAndStart();
         var flow = new InitialStateFlow();
         var flows = flowsContainer.RegisterAnonymousFlow(
             flowFactory: () => flow

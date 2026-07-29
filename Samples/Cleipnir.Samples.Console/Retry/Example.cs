@@ -16,7 +16,7 @@ public static class Example
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddTransient<RetryFlow>();
 
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             store,
             serviceCollection.BuildServiceProvider(),
             new Settings(unhandledExceptionHandler: Console.WriteLine)

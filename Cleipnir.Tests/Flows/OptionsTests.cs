@@ -47,7 +47,7 @@ public class OptionsTests
         // Flow may be Executing (waiting for message) or Suspended depending on timing
         controlPanel.Status.ShouldBeOneOf(Status.Executing, Status.Suspended);
 
-        await controlPanel.Messages.Append(new StringWrapper("Hello"));
+        await flowsWithDefaultProvidedOptions.MessageWriter("Id").AppendMessage(new StringWrapper("Hello"));
 
         await controlPanel.WaitForCompletion(allowPostponeAndSuspended: true);        
     }

@@ -11,7 +11,7 @@ public static class Example
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddTransient<WaitForMessagesFlow>();
 
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             new InMemoryFunctionStore(),
             serviceCollection.BuildServiceProvider()
         );

@@ -14,7 +14,7 @@ public static class Example
         
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddTransient<NewsletterFlow>();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider(),
             new Settings(unhandledExceptionHandler: Console.WriteLine)

@@ -9,7 +9,7 @@ public class FlowFactoryTests
     [TestMethod]
     public async Task FlowFactoryForTestFlowWithResultIsUsedWhenProvided()
     {
-        var flowsContainer = FlowsContainer.Create();
+        var flowsContainer = await FlowsContainer.CreateAndStart();
         var flows = flowsContainer.RegisterAnonymousFlow<TestFlowWithResult, string, string>(flowFactory: () => new TestFlowWithResult());
         var result = await flows.Run("SomeInstance", "hallo world");
         result.ShouldBe("HALLO WORLD");
@@ -30,7 +30,7 @@ public class FlowFactoryTests
     [TestMethod]
     public async Task FlowFactoryForTestFlowWithParamIsUsedWhenProvided()
     {
-        var flowsContainer = FlowsContainer.Create();
+        var flowsContainer = await FlowsContainer.CreateAndStart();
         var flows = flowsContainer.RegisterAnonymousFlow<TestFlowWithParam, string>(flowFactory: () => new TestFlowWithParam());
         await flows.Run("SomeInstance", "hallo world");
         
@@ -55,7 +55,7 @@ public class FlowFactoryTests
     [TestMethod]
     public async Task FlowFactoryForTestFlowWithoutParamIsUsedWhenProvided()
     {
-        var flowsContainer = FlowsContainer.Create();
+        var flowsContainer = await FlowsContainer.CreateAndStart();
         var flows = flowsContainer.RegisterAnonymousFlow(flowFactory: () => new TestFlowWithoutParam());
         await flows.Run("SomeInstance");
         

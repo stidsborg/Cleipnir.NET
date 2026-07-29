@@ -12,7 +12,7 @@ public sealed class MessageTests
     public async Task MultipleMessagesCanBeHandled()
     {
         var instanceId = "Instance#1".ToFlowInstance();
-        var flowsContainer = FlowsContainer.Create();
+        var flowsContainer = await FlowsContainer.CreateAndStart();
         var flows = flowsContainer.RegisterAnonymousFlow(
             flowFactory: () => new TestFlow()
         );

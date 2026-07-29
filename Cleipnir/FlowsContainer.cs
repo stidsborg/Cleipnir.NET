@@ -19,9 +19,14 @@ public class FlowsContainer : IDisposable
 
     public FunctionsRegistry Functions => FunctionRegistry;
 
-    public FlowsContainer(IFunctionStore flowStore, IServiceProvider serviceProvider, Settings? settings = null)
+    private FlowsContainer(IServiceProvider serviceProvider, FunctionsRegistry functionRegistry)
     {
         ServiceProvider = serviceProvider;
+        FunctionRegistry = functionRegistry;
+    }
+
+    public static async Task<FlowsContainer> CreateAndStart(IFunctionStore flowStore, IServiceProvider serviceProvider, Settings? settings = null)
+    {
         settings ??= new Settings();
 
         if (settings.UnhandledExceptionHandler == null && serviceProvider.GetService<ILogger>() != null)
@@ -31,11 +36,9 @@ public class FlowsContainer : IDisposable
                     unhandledExceptionHandler: ex => logger.LogError(ex, "Unhandled exception in Cleipnir"),
                     retentionPeriod: settings.RetentionPeriod,
                     retentionCleanUpFrequency: settings.RetentionCleanUpFrequency,
-                    enableWatchdogs: settings.EnableWatchdogs,
                     watchdogCheckFrequency: settings.WatchdogCheckFrequency,
                     messagesPullFrequency: settings.MessagesPullFrequency,
                     messagesDefaultMaxWaitForCompletion: settings.MessagesDefaultMaxWaitForCompletion,
-                    delayStartup: settings.DelayStartup,
                     maxParallelRetryInvocations: settings.MaxParallelRetryInvocations,
                     serializer: settings.Serializer,
                     utcNow: settings.UtcNow,
@@ -43,7 +46,8 @@ public class FlowsContainer : IDisposable
                 );
         }
 
-        FunctionRegistry = new FunctionsRegistry(flowStore, settings);
+        var functionRegistry = await FunctionsRegistry.CreateAndStart(flowStore, settings);
+        return new FlowsContainer(serviceProvider, functionRegistry);
     }
 
     internal void EnsureNoExistingRegistration(string flowName, Type flowType)
@@ -76,11 +80,11 @@ public class FlowsContainer : IDisposable
         return new Flows<TFlow, TParam, TResult>(flowName, flowsContainer: this, options ?? new FlowOptions(), flowFactory);
     }
 
-    public static FlowsContainer Create(
+    public static Task<FlowsContainer> CreateAndStart(
         IServiceProvider? serviceProvider = null,
         IFunctionStore? functionStore = null,
         Settings? settings = null)
-        => new(
+        => CreateAndStart(
             functionStore ?? new InMemoryFunctionStore(),
             serviceProvider ?? new ServiceCollection().BuildServiceProvider(),
             settings ?? new Settings()

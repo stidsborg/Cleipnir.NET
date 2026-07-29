@@ -17,7 +17,7 @@ public class FlowsWithResultTests
         serviceCollection.AddTransient<SimpleFuncFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );
@@ -63,7 +63,7 @@ public class FlowsWithResultTests
         serviceCollection.AddTransient<SimpledDelayedFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider(),
             new Settings(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
@@ -100,7 +100,7 @@ public class FlowsWithResultTests
         serviceCollection.AddTransient<MessageDrivenFuncFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider(),
             new Settings(watchdogCheckFrequency: TimeSpan.FromMilliseconds(100))
@@ -148,7 +148,7 @@ public class FlowsWithResultTests
         serviceCollection.AddTransient<FailingFuncFlow>();
 
         var flowStore = new InMemoryFunctionStore();
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             flowStore,
             serviceCollection.BuildServiceProvider()
         );

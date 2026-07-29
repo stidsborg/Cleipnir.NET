@@ -1,5 +1,4 @@
 ﻿using Cleipnir.Flows.MassTransit.RabbitMq.Console.Other;
-using Cleipnir.ResilientFunctions.Domain.Exceptions.Commands;
 using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.RabbitMq.Console;
@@ -31,7 +30,7 @@ public class OrderFlow(IBus bus) : Flow<Order>
             await SendOrderConfirmationEmail(order, trackAndTraceNumber);
             await Message<OrderConfirmationEmailSent>();
         }
-        catch (Exception e) when (e is not SuspendInvocationException)
+        catch (Exception)
         {
             await Compensate(order, transactionId, fundsReserved, productsShipped, fundsCaptured);
         }

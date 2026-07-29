@@ -16,7 +16,7 @@ public static class Example
         serviceCollection.AddSingleton(messageBroker);
         serviceCollection.AddTransient<OrderFlow>();
 
-        var flowsContainer = new FlowsContainer(
+        var flowsContainer = await FlowsContainer.CreateAndStart(
             new InMemoryFunctionStore(),
             serviceCollection.BuildServiceProvider()
         );

@@ -25,7 +25,7 @@ public class BulkPublishTests
 
     private async Task MultipleMessageCanBePublished(Task<IFunctionStore> storeTask)
     {
-        using var container = FlowsContainer.Create(functionStore: await storeTask);
+        using var container = await FlowsContainer.CreateAndStart(functionStore: await storeTask);
         var flows = container.RegisterAnonymousFlow(() => new TestFlow(), flowName: $"TestFlow#{Guid.NewGuid()}");
 
         var instances = Enumerable.Range(0, 100)
